@@ -91,6 +91,9 @@ module.exports.getNews = (time, callback) => {
 async function refreshPage() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
+
+    const openPages = await browser.pages();
+    console.log('Mevcut sekme sayısı:', openPages.length);
   
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 60 * 1000;
