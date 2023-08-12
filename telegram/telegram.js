@@ -49,9 +49,9 @@ module.exports.saveNews = (json, callback) => {
         let img = json.img;
         let link = json.link;
         let time = json.time;
-        let title = json.title;
-        let lastWord = title.split(' ').pop();
-        let messageText = '*${' + time + '}* - ' + title + '[' + lastWord + '](${ ' + link + '}) ';
+        let title = json.title.split(' ');
+        let lastWord = title.pop();
+        let messageText = '*' + time + '* - ' + title + ' [' + lastWord + ']( ' + link + ') ';
         
         bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
             caption: messageText,
