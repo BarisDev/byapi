@@ -33,45 +33,43 @@ module.exports.saveNews = (json, callback) => {
     // Veri eklemek için create metodu kullanılır
     //json = JSON.parse(json);
 
-    json.forEach(el => {
-        News.create(el).then(result => {
-            if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
-            /*
-            const boldText = 'Kalın vurgulu metin';
-            const italicText = 'İtalik vurgulu metin';
-            const codeText = 'Kod parçası';
-            const formattedMessage = `
-            *${boldText}*
-            _${italicText}_
-            \`${codeText}\`
-            `;
-            */
+    News.create(json).then(result => {
+        if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
+        /*
+        const boldText = 'Kalın vurgulu metin';
+        const italicText = 'İtalik vurgulu metin';
+        const codeText = 'Kod parçası';
+        const formattedMessage = `
+        *${boldText}*
+        _${italicText}_
+        \`${codeText}\`
+        `;
+        */
 
-            let img = el.img;
-            let link = el.link;
-            let time = el.time;
-            let title = el.title;
-            let lastWord = title.split(' ').pop();
-            let messageText = '*${' + time + '}* - ' + title + '[' + lastWord + '](${ ' + link + '}) ';
-            
-            bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
-                caption: messageText,
-                parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
-            });
-
-            /*
-            bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
-                caption: messageText,
-                parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
-            });
-            */
-
-            callback(null, true);
-        })
-        .catch(err => {
-            console.error('Veri eklenirken hata oluştu:', err);
-            callback(err, null);
+        let img = json.img;
+        let link = json.link;
+        let time = json.time;
+        let title = json.title;
+        let lastWord = title.split(' ').pop();
+        let messageText = '*${' + time + '}* - ' + title + '[' + lastWord + '](${ ' + link + '}) ';
+        
+        bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
+            caption: messageText,
+            parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
         });
+
+        /*
+        bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
+            caption: messageText,
+            parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+        });
+        */
+
+        callback(null, true);
+    })
+    .catch(err => {
+        console.error('Veri eklenirken hata oluştu:', err);
+        callback(err, null);
     });
 };
 

@@ -3,8 +3,7 @@ const router = express.Router();
 const telegram = require('./telegram.js');
 
 router.post('/saveNews', (req, res) => {
-    
-    if (req.body.json.length == 0) return res.status(400).json({
+    if (!req.body.json) return res.status(400).json({
         code: 400,
         message: 'Parametre hatası.'
     }).end();
