@@ -29,40 +29,6 @@ db.once('open', () => {
     // Burada Mongoose kullanmaya başlayabilirsiniz
 });
 
-
-// Mesajları dinleme
-bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-  
-    // Kullanıcıdan gelen mesajı alın
-    const receivedMessage = msg.text;
-  
-    // Kullanıcıya cevap olarak yorum yapma seçeneği sunun
-    const replyMarkup = {
-        reply_markup: JSON.stringify({
-            inline_keyboard: [
-                [
-                    { text: 'Bu mesaja yorum yap', callback_data: 'comment' }
-                ]
-            ]
-        })
-    };
-  
-    // Mesajı gönderin
-    bot.sendMessage(chatId, 'Bir mesaj aldım: ' + receivedMessage, replyMarkup);
-});
-  
-// Kullanıcının yorum yapma talebine cevap verme
-bot.on('callback_query', (query) => {
-    const chatId = query.message.chat.id;
-    const messageId = query.message.message_id;
-  
-    if (query.data === 'comment') {
-      // Kullanıcıya yorum yapma alanını gönderin
-      bot.sendMessage(chatId, 'Yorumunuzu yazın:');
-    }
-});
-
 module.exports.saveNews = (json, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
     // Veri eklemek için create metodu kullanılır
@@ -122,70 +88,75 @@ module.exports.getNews = (time, callback) => {
     });
 };
 
-
 async function refreshPage() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    
+  
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 60 * 1000;
-    
+  
     const refreshLoop = async () => {
-        await page.goto(url, { waitUntil: 'networkidle0' });
-        if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
-        
-        let dk = await page.$('.sondakikatxt');
-        const timeText = await dk.evaluate(element => element.textContent);
-        const timeRegex = /(\d{2}:\d{2}) itibariyle/; // Saat bilgisini içeren metni düzenli ifadeyle çıkarır
-        const match = timeText.match(timeRegex);
-      
-        if (match && match.length >= 2) {
-            dk = match[1];
-            if (!process.env.PRODUCTION) console.log('Saat:', dk);
-        } else {
-            if (!process.env.PRODUCTION) console.log('Saat bulunamadı.');
-        }
+        try {
+            await page.goto(url, { waitUntil: 'networkidle0' });
+            if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
 
-        //.split(' ').find(el => el.includes(':'));
-        let arr = [];
+
+            let dk = await page.$('.sondakikatxt');
+            const timeText = await dk.evaluate(element => element.textContent);
+            const timeRegex = /(\d{2}:\d{2}) itibariyle/; // Saat bilgisini içeren metni düzenli ifadeyle çıkarır
+            const match = timeText.match(timeRegex);
         
-        const elements = await page.$$('.hblnBox');
-        for (const element of elements) {
-            const imgElement = await element.$('img');//.evaluate(img => img.getAttribute('src'));
-            const img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
+            if (match && match.length >= 2) {
+                dk = match[1];
+                if (!process.env.PRODUCTION) console.log('Saat:', dk);
+            } else {
+                if (!process.env.PRODUCTION) console.log('Saat bulunamadı.');
+            }
+
+            //.split(' ').find(el => el.includes(':'));
+            let arr = [];
             
-            const titleElement = await element.$('.hblnContent');
-            const title = titleElement ? await titleElement.evaluate(title => title.textContent) : null;
+            const elements = await page.$$('.hblnBox');
+            for (const element of elements) {
+                const imgElement = await element.$('img');//.evaluate(img => img.getAttribute('src'));
+                const img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
+                
+                const titleElement = await element.$('.hblnContent');
+                const title = titleElement ? await titleElement.evaluate(title => title.textContent) : null;
 
-            const timeElement = await element.$('.hblnTime');
-            const time = timeElement ? await timeElement.evaluate(time => time.textContent) : null;
+                const timeElement = await element.$('.hblnTime');
+                const time = timeElement ? await timeElement.evaluate(time => time.textContent) : null;
 
-            const linkElement = await element.$('a');
-            const link = linkElement ? await linkElement.evaluate(a => a.getAttribute('href')) : null;
+                const linkElement = await element.$('a');
+                const link = linkElement ? await linkElement.evaluate(a => a.getAttribute('href')) : null;
 
-            if (!process.env.PRODUCTION) {
-                console.log('img src:', img);
-                console.log('hblnContent:', title);
-                console.log('hblnTime:', time);
-                console.log('link:', link);
+                if (!process.env.PRODUCTION) {
+                    console.log('img src:', img);
+                    console.log('hblnContent:', title);
+                    console.log('hblnTime:', time);
+                    console.log('link:', link);
+                }
+
+                if (time == dk) {
+                    arr.push({
+                        img: img,
+                        title: title,
+                        time: time,
+                        link: link
+                    });
+                }
             }
-
-            if (time == dk) {
-                arr.push({
-                    img: img,
-                    title: title,
-                    time: time,
-                    link: link
-                });
-            }
-        }
-        if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
-        console.log(dk, "-", arr.length, "adet içeri girecek");
-        saveList(arr, 0);
+            if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
+            console.log(dk, "-", arr.length, "adet içeri girecek");
+            saveList(arr, 0);
         
-        setTimeout(refreshLoop, refreshInterval);
+        } catch (error) {
+            console.error('Hata:', error);
+        } finally {
+            setTimeout(refreshLoop, refreshInterval);
+        }
     };
-
+  
     refreshLoop();
 }
 
