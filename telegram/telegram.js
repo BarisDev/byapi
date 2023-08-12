@@ -159,9 +159,9 @@ async function refreshPage() {
 
 saveList = (arr, counter) => {
     if (counter >= arr.length) return;
-    this.saveNews(arr[counter], (err, res => {
+    this.saveNews(arr[counter], (err, res) => {
         saveList(arr, counter + 1);
-    }));
+    });
 }
 
 refreshPage();
