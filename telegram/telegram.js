@@ -92,8 +92,8 @@ async function refreshPage() {
     const browser = await puppeteer.launch();
     
     const openPages = await browser.pages();
-    console.log('Mevcut sekme sayısı:', openPages.length);
-    if (openPages.length > 1) {
+    if (openPages.length > 0) {
+        console.log('Mevcut sekme sayısı:', openPages.length);
         await Promise.all(openPages.map(page => page.close()));
     }
     
