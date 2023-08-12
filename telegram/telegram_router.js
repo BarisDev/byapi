@@ -4,7 +4,7 @@ const telegram = require('./telegram.js');
 
 router.post('/saveNews', (req, res) => {
     
-    if (!isJsonString(req.body.json)) return res.status(400).json({
+    if (req.body.json.length == 0) return res.status(400).json({
         code: 400,
         message: 'Parametre hatası.'
     }).end();
@@ -28,12 +28,4 @@ router.post('/getNews', (req, res) => {
     });
 });
 
-isJsonString = (str) => {
-    try {
-        JSON.parse(str);
-    } catch (e) {
-        return false;
-    }
-    return true;
-}
 module.exports = router;

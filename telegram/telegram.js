@@ -30,8 +30,8 @@ db.once('open', () => {
 
 module.exports.saveNews = (json, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
-    // Veri eklemek için create metodu kullanma
-    json = JSON.parse(json);
+    // Veri eklemek için create metodu kullanılır
+    //json = JSON.parse(json);
 
     json.forEach(el => {
         News.create(el).then(result => {
