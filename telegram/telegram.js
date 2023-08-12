@@ -34,51 +34,65 @@ module.exports.saveNews = (json, callback) => {
     // Veri eklemek için create metodu kullanılır
     //json = JSON.parse(json);
 
-    News.create(json).then(result => {
-        if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
-        /*
-        const boldText = 'Kalın vurgulu metin';
-        const italicText = 'İtalik vurgulu metin';
-        const codeText = 'Kod parçası';
-        const formattedMessage = `
-        *boldText*
-        _italicText_
-        \`codeText\`
-        `;
-        */
-
-        let img = json.img;
-        let link = json.link;
-        let time = json.time;
+    
+    this.getNews( { "title": json.title}, (err, res) => {
+        if (err) {
+            console.error("getNews", err);
+            return callback({code: 500, message: 'Internal Server Error'}, null);
+        }
+        console.log("kayıt geldi", res);
+        if (res) {
+            console.log("Bu kayıt bizde var");
+            return callback(null, true);
+        } else {
+            console.log("Bu kayıt bizde yok, insert edicez ve telegrama atıcaz");
+            News.create(json).then(result => {
+                if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
+                /*
+                const boldText = 'Kalın vurgulu metin';
+                const italicText = 'İtalik vurgulu metin';
+                const codeText = 'Kod parçası';
+                const formattedMessage = `
+                *boldText*
+                _italicText_
+                \`codeText\`
+                `;
+                */
         
-        let title = json.title.split(' ');
-        let lastWord = title.pop();
-        title = title.join(' ');
-        let messageText = '<b>' + time + '</b> - ' + title + '<a href="' + link + '">' + lastWord + '</a>';
-
-        bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
-            caption: messageText,
-            parse_mode: 'HTML',
-        });
-
-        /*
-        bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
-            caption: messageText,
-            parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
-        });
-        */
-
-        callback(null, true);
-    })
-    .catch(err => {
-        console.error('Veri eklenirken hata oluştu:', err);
-        callback(err, null);
+                let img = json.img;
+                let link = json.link;
+                let time = json.time;
+                
+                let title = json.title.split(' ');
+                let lastWord = title.pop();
+                title = title.join(' ');
+                let messageText = '<b>' + time + '</b> - ' + title + '<a href="' + link + '">' + lastWord + '</a>';
+        
+                bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
+                    caption: messageText,
+                    parse_mode: 'HTML',
+                });
+        
+                /*
+                bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
+                    caption: messageText,
+                    parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+                });
+                */
+        
+                callback(null, true);
+            })
+            .catch(err => {
+                console.error('Veri eklenirken hata oluştu:', err);
+                callback(err, null);
+            });
+        }
     });
 };
 
-module.exports.getNews = (time, callback) => {
+module.exports.getNews = (query, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
-    News.find({ time: time }).then(result => {
+    News.find(query).then(result => {
         if (!process.env.PRODUCTION) console.log('Veri başarıyla getirildi:', result);
         callback(null, result);
     })
@@ -106,7 +120,7 @@ async function refreshPage() {
 
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 180 * 1000;
-  
+
     const refreshLoop = async () => {
         try {
             await page.goto(url, { waitUntil: 'networkidle0' });
@@ -148,6 +162,12 @@ async function refreshPage() {
                     console.log('hblnTime:', time);
                     console.log('link:', link);
                 }
+
+                
+                let query = { title: title };
+                this.getNews(query, (err, res) => {
+
+                });
 
                 if (time == dk) {
                     arr.push({
