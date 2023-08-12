@@ -2,6 +2,7 @@ require('dotenv/config');
 const uri = "mongodb+srv://" + process.env.MONGO_USERNAME + ":" + process.env.MONGO_PASS + "@mongonews.0oh2nvc.mongodb.net/newsDB?retryWrites=true&w=majority";
 const mongoose = require('mongoose');
 const TelegramBot = require('node-telegram-bot-api');
+const puppeteer = require('puppeteer');
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_KEY, {polling: true});
 
@@ -40,9 +41,9 @@ module.exports.saveNews = (json, callback) => {
         const italicText = 'İtalik vurgulu metin';
         const codeText = 'Kod parçası';
         const formattedMessage = `
-        *${boldText}*
-        _${italicText}_
-        \`${codeText}\`
+        *boldText*
+        _italicText_
+        \`codeText\`
         `;
         */
 
@@ -88,3 +89,56 @@ module.exports.getNews = (time, callback) => {
         callback(err, null);
     });
 };
+
+
+async function refreshPage() {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    
+    const url = 'https://www.haberler.com/son-dakika/';
+    const refreshInterval = 60 * 1000;
+    
+    const refreshLoop = async () => {
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
+        
+        let dk = element.$eval('.sondakikatxt', time => time.textContent).split(' ').find(el => el.includes(':'));
+        let arr = [];
+        const elements = await page.$$('.hblnBox');
+        for (const element of elements) {
+            const img = await element.$eval('img', img => img.getAttribute('src'));
+            const title = await element.$eval('.hblnContent', content => content.textContent);
+            const time = await element.$eval('.hblnTime', time => time.textContent);
+            const link = await element.$eval('a', a => a.getAttribute('href'));
+
+            if (!process.env.PRODUCTION) {
+                console.log('img src:', img);
+                console.log('hblnContent:', title);
+                console.log('hblnTime:', time);
+                console.log('link:', link);
+            }
+
+            if (time == dk) {
+                arr.push({
+                    img: img,
+                    title: title,
+                    time: time,
+                    link: link
+                });
+            }
+        }
+        this.saveNews(arr, 0);
+        setTimeout(refreshLoop, refreshInterval);
+    };
+
+    refreshLoop();
+}
+
+saveList = (arr, counter) => {
+    if (counter >= arr.length) return;
+    this.saveNews(arr[counter], (err, res => {
+        saveList(arr, counter + 1);
+    }));
+}
+
+refreshPage();
