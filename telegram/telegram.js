@@ -49,10 +49,14 @@ module.exports.saveNews = (json, callback) => {
         let img = json.img;
         let link = json.link;
         let time = json.time;
+        
         let title = json.title.split(' ');
         let lastWord = title.pop();
-        let messageText = '*' + time + '* - ' + title + ' [' + lastWord + ']( ' + link + ') ';
+        title = title.join(' ');
+        let messageText = '*' + time + '* - ' + title + ' [' + lastWord + '](' + link + ')';
         
+        // [Google](https://www.google.com)
+
         bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
             caption: messageText,
             parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
