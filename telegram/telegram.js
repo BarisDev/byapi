@@ -102,14 +102,34 @@ async function refreshPage() {
         await page.goto(url, { waitUntil: 'networkidle0' });
         if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
         
-        let dk = element.$eval('.sondakikatxt', time => time.textContent).split(' ').find(el => el.includes(':'));
+        let dk = await page.$('.sondakikatxt');
+        const timeText = await dk.evaluate(element => element.textContent);
+        const timeRegex = /(\d{2}:\d{2}) itibariyle/; // Saat bilgisini içeren metni düzenli ifadeyle çıkarır
+        const match = timeText.match(timeRegex);
+      
+        if (match && match.length >= 2) {
+          dk = match[1];
+          console.log('Saat:', dk);
+        } else {
+          console.log('Saat bulunamadı.');
+        }
+
+        //.split(' ').find(el => el.includes(':'));
         let arr = [];
+        
         const elements = await page.$$('.hblnBox');
         for (const element of elements) {
-            const img = await element.$eval('img', img => img.getAttribute('src'));
-            const title = await element.$eval('.hblnContent', content => content.textContent);
-            const time = await element.$eval('.hblnTime', time => time.textContent);
-            const link = await element.$eval('a', a => a.getAttribute('href'));
+            const imgElement = await element.$('img');//.evaluate(img => img.getAttribute('src'));
+            const img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
+            
+            const titleElement = await element.$('.hblnContent');
+            const title = titleElement ? await titleElement.evaluate(title => title.textContent) : null;
+
+            const timeElement = await element.$('.hblnTime');
+            const time = timeElement ? await timeElement.evaluate(time => time.textContent) : null;
+
+            const linkElement = await element.$('a');
+            const link = linkElement ? await linkElement.evaluate(a => a.getAttribute('href')) : null;
 
             if (!process.env.PRODUCTION) {
                 console.log('img src:', img);
@@ -127,7 +147,9 @@ async function refreshPage() {
                 });
             }
         }
+        if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
         this.saveNews(arr, 0);
+        
         setTimeout(refreshLoop, refreshInterval);
     };
 
