@@ -29,6 +29,40 @@ db.once('open', () => {
     // Burada Mongoose kullanmaya başlayabilirsiniz
 });
 
+
+// Mesajları dinleme
+bot.on('message', (msg) => {
+    const chatId = msg.chat.id;
+  
+    // Kullanıcıdan gelen mesajı alın
+    const receivedMessage = msg.text;
+  
+    // Kullanıcıya cevap olarak yorum yapma seçeneği sunun
+    const replyMarkup = {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [
+                    { text: 'Bu mesaja yorum yap', callback_data: 'comment' }
+                ]
+            ]
+        })
+    };
+  
+    // Mesajı gönderin
+    bot.sendMessage(chatId, 'Bir mesaj aldım: ' + receivedMessage, replyMarkup);
+});
+  
+// Kullanıcının yorum yapma talebine cevap verme
+bot.on('callback_query', (query) => {
+    const chatId = query.message.chat.id;
+    const messageId = query.message.message_id;
+  
+    if (query.data === 'comment') {
+      // Kullanıcıya yorum yapma alanını gönderin
+      bot.sendMessage(chatId, 'Yorumunuzu yazın:');
+    }
+});
+
 module.exports.saveNews = (json, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
     // Veri eklemek için create metodu kullanılır
@@ -54,13 +88,11 @@ module.exports.saveNews = (json, callback) => {
         let title = json.title.split(' ');
         let lastWord = title.pop();
         title = title.join(' ');
-        let messageText = '*' + time + '* - ' + title + ' [' + lastWord + '](' + link + ')';
-        
-        // [Google](https://www.google.com)
+        let messageText = '<b>' + time + '</b> - ' + title + '<a href="' + link + '">' + lastWord + '</a>';
 
         bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
             caption: messageText,
-            parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+            parse_mode: 'HTML',
         });
 
         /*
@@ -108,10 +140,10 @@ async function refreshPage() {
         const match = timeText.match(timeRegex);
       
         if (match && match.length >= 2) {
-          dk = match[1];
-          console.log('Saat:', dk);
+            dk = match[1];
+            if (!process.env.PRODUCTION) console.log('Saat:', dk);
         } else {
-          console.log('Saat bulunamadı.');
+            if (!process.env.PRODUCTION) console.log('Saat bulunamadı.');
         }
 
         //.split(' ').find(el => el.includes(':'));
