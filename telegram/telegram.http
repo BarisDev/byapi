@@ -1,0 +1,30 @@
+### Url definitions
+@localUrl = http://localhost:3000
+
+@baseUrl = {{localUrl}}
+
+### Base Request
+{{baseUrl}}
+
+### -------------- REQUESTS --------------
+
+### SaveNews
+POST {{localUrl}}/telegram/saveNews HTTP/1.1
+Content-Type: application/json
+
+{
+    "json": {
+        "img": "Barış Test zaman 2",
+        "link": "Barış Test",
+        "time": "Barış Test2",
+        "title": "Barış Test"
+    }
+}
+
+### getNews
+POST {{localUrl}}/telegram/getNews HTTP/1.1
+Content-Type: application/json
+
+{
+    "time": "Barış Test2"
+}

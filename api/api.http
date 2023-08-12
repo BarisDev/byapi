@@ -1,0 +1,29 @@
+### Url definitions
+@localUrl = http://localhost:3000
+
+@baseUrl = {{localUrl}}
+
+### Base Request
+{{baseUrl}}
+
+### -------------- REQUESTS --------------
+
+POST {{localUrl}}/api/generateImage HTTP/1.1
+Content-Type: application/json
+
+{
+    //"text": "landing page background for a web based card game without text"
+    //"text": "fantastic epic professional looking high quality table anime for card game background"
+    //"text": "bloody vampire cute happy smiling anime girl with orange hair and pale skin"
+    "text": "Pokemon anime ability called Ups GRASS moves in a pinch"
+}
+
+### Chat
+POST {{localUrl}}/api/chat HTTP/1.1
+Content-Type: application/json
+
+{
+    "text": "Adeus",
+    "status": 0,
+    "type": 2
+}
