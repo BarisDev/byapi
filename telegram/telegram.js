@@ -95,18 +95,17 @@ async function refreshPage() {
     if (openPages.length > 0) {
         console.log('Mevcut sekme sayısı:', openPages.length);
         await Promise.all(openPages.map(page => page.close()));
+        const closedPages = await browser.pages();
+        console.log('Temizlendikten sonraki sekme sayısı:', closedPages.length);
     }
-    
-    let temp2 = await browser.pages();
-    console.log('Temizlendikten sonraki sekme sayısı:', temp2.length);
 
     const page = await browser.newPage();
-    
+
     let temp = await browser.pages();
     console.log('Yeni Mevcut sekme sayısı:', temp.length);
 
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 60 * 1000;
+    const refreshInterval = 180 * 1000;
   
     const refreshLoop = async () => {
         try {
