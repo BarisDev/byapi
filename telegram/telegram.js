@@ -148,6 +148,7 @@ async function refreshPage() {
             }
         }
         if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
+        console.log(dk, "-", arr.length, "adet içeri girecek");
         saveList(arr, 0);
         
         setTimeout(refreshLoop, refreshInterval);
