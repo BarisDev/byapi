@@ -1,12 +1,10 @@
 const express = require('express');
 const app = express();
-const port = 3000;
 const bodyParser = require('body-parser');
 
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb', extended: true}));
 app.use(bodyParser.text());
-
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -34,6 +32,6 @@ app.get('/telegram', (req, res) => {
 app.use('/api', require('./api/router.js'));
 app.use('/telegram', require('./telegram/telegram_router.js'));
 
-app.listen(port, () => {
-  	console.log(`Api working on port ${port}`)
+app.listen(process.env.PORT, () => {
+  	console.log(`Api working on port ${process.env.PORT}`)
 });
