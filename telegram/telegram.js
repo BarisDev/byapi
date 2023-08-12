@@ -148,7 +148,7 @@ async function refreshPage() {
             }
         }
         if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
-        this.saveNews(arr, 0);
+        saveList(arr, 0);
         
         setTimeout(refreshLoop, refreshInterval);
     };
