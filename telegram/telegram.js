@@ -94,10 +94,12 @@ async function refreshPage() {
     const openPages = await browser.pages();
     console.log('Mevcut sekme sayısı:', openPages.length);
     if (openPages.length > 1) {
-        openPages.forEach(async el => await el.close());
+        for (let page in openPages) await page.close();
     }
-
     const page = await browser.newPage();
+    
+    let temp = await browser.pages();
+    console.log('Yeni Mevcut sekme sayısı:', temp.length);
 
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 60 * 1000;
