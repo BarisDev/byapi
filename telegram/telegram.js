@@ -142,7 +142,7 @@ async function refreshPage() {
             //.split(' ').find(el => el.includes(':'));
             let arr = [];
             
-            const elements = await page.$$('.hblnBox');
+            let elements = await page.$$('.hblnBox');
             elements = elements.length > 10 ? elements.slice(0, 10) : elements;
             for (const element of elements) {
                 const imgElement = await element.$('img');//.evaluate(img => img.getAttribute('src'));
