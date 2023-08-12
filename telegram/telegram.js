@@ -94,8 +94,12 @@ async function refreshPage() {
     const openPages = await browser.pages();
     console.log('Mevcut sekme sayısı:', openPages.length);
     if (openPages.length > 1) {
-        for (let page in openPages) await page.close();
+        await Promise.all(openPages.map(page => page.close()));
     }
+    
+    let temp2 = await browser.pages();
+    console.log('Temizlendikten sonraki sekme sayısı:', temp2.length);
+
     const page = await browser.newPage();
     
     let temp = await browser.pages();
