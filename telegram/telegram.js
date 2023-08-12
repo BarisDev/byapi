@@ -52,13 +52,21 @@ module.exports.saveNews = (json, callback) => {
             let time = el.time;
             let title = el.title;
             let lastWord = title.split(' ').pop();
-            let messageText = '*${' + time + '}* - ' + title + '[' + lastWord + '](${ ' + link + '}) '
-            bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
+            let messageText = '*${' + time + '}* - ' + title + '[' + lastWord + '](${ ' + link + '}) ';
+            
+            bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
                 caption: messageText,
                 parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
             });
 
-            callback(null, result);
+            /*
+            bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
+                caption: messageText,
+                parse_mode: 'Markdown', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+            });
+            */
+
+            callback(null, true);
         })
         .catch(err => {
             console.error('Veri eklenirken hata oluştu:', err);
