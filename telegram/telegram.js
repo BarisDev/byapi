@@ -143,6 +143,7 @@ async function refreshPage() {
             let arr = [];
             
             const elements = await page.$$('.hblnBox');
+            elements = elements.length > 10 ? elements.slice(0, 10) : elements;
             for (const element of elements) {
                 const imgElement = await element.$('img');//.evaluate(img => img.getAttribute('src'));
                 const img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
@@ -162,12 +163,6 @@ async function refreshPage() {
                     console.log('hblnTime:', time);
                     console.log('link:', link);
                 }
-
-                
-                let query = { title: title };
-                this.getNews(query, (err, res) => {
-
-                });
 
                 if (time == dk) {
                     arr.push({
