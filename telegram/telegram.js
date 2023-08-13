@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const TelegramBot = require('node-telegram-bot-api');
 const puppeteer = require('puppeteer');
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_KEY); // {polling: true}
+bot.on('polling_error', (error) => {
+    console.log(error.code, error);
+});
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
@@ -62,11 +65,14 @@ module.exports.saveNews = (json, callback) => {
                 let lastWord = title.pop();
                 title = title.join(' ');
                 // '<b>' + time + '</b> - ' + 
-                let messageText = title + ' <a href="' + link + '">' + lastWord + '</a>';
+                let messageText = '<b>' + title + '</b> <a href="' + link + '">' + lastWord + '</a>';
 
                 bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
                     parse_mode: 'HTML',
+                }).catch((error) => {
+                    console.log(error.code);
+                    console.log(error.response.body);
                 });
 
                 /*
