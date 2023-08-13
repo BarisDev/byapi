@@ -187,13 +187,13 @@ sendMessage = (json, callback) => {
     let link = json.link;
     let time = json.time;
 
-    //json.title = json.title.replace(new RegExp('.', 'g'), '\\.'); //telegram bot error
+    json.title = json.title.replace(('/\./g'), '\\.'); //telegram bot error
     //console.log("----------->", json.title)
     let title = json.title.split(' ');
     let lastWord = title.pop();
     title = title.join(' ');
-    // '<b>' + time + '</b> - ' + 
-    let messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
+    // '<b>' + time + '</b> - ' +  
+    // let messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
 
     /*
     *bold \*text*
@@ -218,8 +218,9 @@ sendMessage = (json, callback) => {
         bot.sendPhoto(chatID, img, {
             caption: messageText,
             parse_mode: 'MARKDOWNV2', // 'HTML'
-        }).catch((error) => {
-            console.log(error);
+        }).catch(error => {
+            console.log(error.code);
+            console.log(error.response.body.description);
         });
     } else if (title && link && img == "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
         //messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
