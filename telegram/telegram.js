@@ -129,11 +129,11 @@ async function refreshPage() {
             await bot.startPolling();
             console.log("polling started");
 
-            if (page.isDetached()) {
-                console.log('PAGE DETACHED!');
+            if (page.frames().length == 0) {
+                console.log('FRAMES DETACHED FROM PAGE!');
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             } else {
-                console.log('page is alive');
+                console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
             
