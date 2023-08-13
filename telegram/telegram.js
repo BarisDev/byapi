@@ -41,7 +41,7 @@ module.exports.saveNews = (json, callback) => {
             return callback({code: 500, message: 'Internal Server Error'}, null);
         }
         console.log("kayıt geldi", res);
-        if (res) {
+        if (res.length > 0) {
             console.log("Bu kayıt bizde var");
             return callback(null, true);
         } else {
