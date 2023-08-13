@@ -171,7 +171,7 @@ async function refreshPage() {
             }
             if (process.env.PRODUCTION == 'FALSE') console.log("finalArray ->", arr);
             console.log(dk, "-", arr.length, " data will be analysed");
-            
+
             // page.close();
             // browser.close();
             
@@ -180,7 +180,9 @@ async function refreshPage() {
             console.error('Error:', error);
         } finally {
             
-            setTimeout(refreshLoop, refreshInterval)
+            setTimeout(async () => {
+                await refreshLoop();
+            }, refreshInterval)
             
             //await page.waitFor(5000);
             //refreshLoop();
