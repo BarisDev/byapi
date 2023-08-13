@@ -103,26 +103,28 @@ module.exports.getNews = (query, callback) => {
 };
 
 async function refreshPage() {
-    const browser = await puppeteer.launch();
-    
-    const openPages = await browser.pages();
-    if (openPages.length > 0) {
-        console.log('Mevcut sekme sayısı:', openPages.length);
-        await Promise.all(openPages.map(page => page.close()));
-        const closedPages = await browser.pages();
-        console.log('Temizlendikten sonraki sekme sayısı:', closedPages.length);
-    }
-
-    const page = await browser.newPage();
-
-    let temp = await browser.pages();
-    console.log('Yeni Mevcut sekme sayısı:', temp.length);
-
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 180 * 1000;
 
     const refreshLoop = async () => {
         try {
+            const browser = await puppeteer.launch();
+    
+            const openPages = await browser.pages();
+            if (openPages.length > 0) {
+                console.log('Mevcut sekme sayısı:', openPages.length);
+                await Promise.all(openPages.map(page => page.close()));
+                const closedPages = await browser.pages();
+                console.log('Temizlendikten sonraki sekme sayısı:', closedPages.length);
+            }
+
+            const page = await browser.newPage();
+
+            let temp = await browser.pages();
+            console.log('Yeni Mevcut sekme sayısı:', temp.length);
+
+
+
             await page.goto(url, { waitUntil: 'networkidle0' });
             if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
 
@@ -164,19 +166,21 @@ async function refreshPage() {
                     console.log('link:', link);
                 }
 
-                if (time == dk) {
-                    arr.push({
-                        img: img,
-                        title: title,
-                        time: time,
-                        link: link
-                    });
-                }
+                arr.push({
+                    img: img,
+                    title: title,
+                    time: time,
+                    link: link
+                });
+                //if (time == dk) {}
             }
             if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
             console.log(dk, "-", arr.length, "adet içeri girecek");
+            
+            page.close();
+            browser.close();
+            
             saveList(arr, 0);
-        
         } catch (error) {
             console.error('Hata:', error);
         } finally {
