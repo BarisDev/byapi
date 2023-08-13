@@ -41,12 +41,12 @@ module.exports.saveNews = (json, callback) => {
             console.error("getNews", err);
             return callback({code: 500, message: 'Internal Server Error'}, null);
         }
-        console.log("kayıt geldi", res);
+        //console.log("kayıt geldi", res);
         if (res.length > 0) {
-            console.log("Bu kayıt bizde var");
+            console.log("Bu kayıt bizde var", res[0].title);
             return callback(null, true);
         } else {
-            console.log("Bu kayıt bizde yok, insert edicez ve telegrama atıcaz");
+            console.log("Bu kayıt bizde yok", json.title);
             News.create(json).then(result => {
                 if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
                 /*
@@ -106,7 +106,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 180 * 1000;
+    const refreshInterval = 60 * 1000;
 
     const refreshLoop = async () => {
         try {
