@@ -7,6 +7,7 @@ const puppeteer = require('puppeteer');
 const botID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_BOT_KEY : process.env.TELEGRAM_BOT_KEY_TEST;
 const chatID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_CHAT_ID : process.env.TELEGRAM_CHAT_ID_TEST;
 const bot = new TelegramBot(botID); // {polling: true}
+let browser;
 /*
 bot.on('polling_error', (error) => {
     console.log(error.code, error);
@@ -47,7 +48,12 @@ module.exports.saveNews = (json, callback) => {
         }
         if (res.length > 0) {
             console.log("found", res[0].title);
-            return callback(null, true);
+            
+            if (process.env.PRODUCTION == 'TRUE') {
+                return callback(null, true);
+            } else {
+                sendMessage(json, (err, res) => callback(err, res));
+            }
         } else {
             
             if (process.env.PRODUCTION == 'TRUE') {
@@ -81,7 +87,7 @@ module.exports.getNews = (query, callback) => {
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 180 * 1000;
-    const browser = await puppeteer.launch(); //{headless: "new"}
+    browser = await puppeteer.launch(); //{headless: "new"}
     const openPages = await browser.pages();
     if (openPages.length > 0) {
         console.log('Current tab amount:', openPages.length);
@@ -173,60 +179,75 @@ async function refreshPage() {
         } catch (error) {
             console.error('Error:', error);
         } finally {
-            setTimeout(refreshLoop, refreshInterval);
+            
+            setTimeout(refreshLoop, refreshInterval)
+            
+            //await page.waitFor(5000);
+            //refreshLoop();
         }
     };
   
     refreshLoop();
 }
 
-sendMessage = (json, callback) => {
-    const url = 'https://www.haberler.com/son-dakika/';
-    
+sendMessage = async (json, callback) => {
+
     let img = json.img;
     let link = json.link;
     let time = json.time;
-
-    json.title = json.title.replace(('/\./g'), '\\.'); //telegram bot error
-    //console.log("----------->", json.title)
     let title = json.title.split(' ');
     let lastWord = title.pop();
     title = title.join(' ');
-    // '<b>' + time + '</b> - ' +  
-    // let messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
 
-    /*
-    *bold \*text*
-    _italic \*text_
-    __underline__
-    ~strikethrough~
-    ||spoiler||
-    *bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold*
-    [inline URL](http://www.example.com/)
-    [inline mention of a user](tg://user?id=123456789)
-    ![👍](tg://emoji?id=5368324170671202286)
-    `inline fixed-width code`
-    ```
-    pre-formatted fixed-width code block
-    ```
-    ```python
-    pre-formatted fixed-width code block written in the Python programming language
-    ```
-    */
+    let details = await getDescription(link);
+    News.updateOne(
+        { title: json.title },
+        { $set: { description: details.description, category: details.category } },
+        { new: true },
+        (err, updatedItem) => {
+            if (err) {
+                console.error('Güncelleme hatası:', err);
+            } else {
+                console.log('Güncellenen kayıt:', updatedItem);
+            }
+        }
+    );
+
+    
+    if (details.description) {
+        if (details.description.length > 200) {
+            details.description = details.description.substring(0, 200) + '...';
+        }
+    }
+
     if (title && link && img != "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
-        messageText = title + ' ' + lastWord + ' [Haberin devamı](https://www\.haberler\.com' + link + ')';
+        // messageText = title + ' ' + lastWord;
+        // if (details.description) messageText += '\n' + details.description;
+        // messageText += '\n[Haberin devamı](https://www\.haberler\.com' + link + ')';
+
+        messageText = title + ' ' + lastWord;
+        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+
         bot.sendPhoto(chatID, img, {
             caption: messageText,
-            parse_mode: 'MARKDOWNV2', // 'HTML'
+            parse_mode: 'HTML', // 'MARKDOWNV2'
         }).catch(error => {
             console.log(error.code);
             console.log(error.response.body.description);
         });
     } else if (title && link && img == "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
         //messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
-        messageText = title + ' ' + lastWord + ' [Haberin devamı](https://www\.haberler\.com' + link + ')';
+        // messageText = title + ' ' + lastWord;
+        // if (details.description) messageText += '\n' + details.description;
+        // messageText += '\n[Haberin devamı](https://www\.haberler\.com' + link + ')';
+
+        messageText = title + ' ' + lastWord;
+        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+
         bot.sendMessage(chatID, messageText, {
-            parse_mode: 'MARKDOWNV2', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+            parse_mode: 'HTML', // 'MARKDOWNV2'
             disable_web_page_preview: true
         }).catch((error) => {
             console.log(error);
@@ -237,7 +258,35 @@ sendMessage = (json, callback) => {
     callback(null, true);
 }
 
-saveList = async (arr, counter) => {
+getDescription = (link) => {
+    return new Promise(async function(resolve, reject) {
+        //console.log('\nDetay sayfası süreci başlıyor');
+        const page = await browser.newPage();
+        const url = "https://www.haberler.com" + link;
+        let description, category;
+        try {
+            await page.goto(url, { waitUntil: 'networkidle0', timeout: 10000 });
+            let descriptionElement = await page.$('.haber_spotu');
+            description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
+        
+            let categoryElement = await page.$('.hbptHead_h2');
+            category = categoryElement ? await categoryElement.evaluate(element => element.textContent) : null;
+
+        } catch (error) {
+            console.log(error, link);
+            category = null;
+            description = null;
+        }
+
+        page.close();
+        resolve({
+            description: description,
+            category: category
+        });
+    })
+}
+
+saveList = (arr, counter) => {
     if (counter >= arr.length) {
         //let a = await bot.stopPolling();
         //console.log("polling stopped", a);
