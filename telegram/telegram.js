@@ -49,9 +49,9 @@ module.exports.saveNews = (json, callback) => {
             console.log("found", res[0].title);
             return callback(null, true);
         } else {
-            console.log("inserting...", json.title);
             
             if (process.env.PRODUCTION == 'TRUE') {
+                console.log("inserting...", json.title);
                 News.create(json).then(result => {
                     sendMessage(json, (err, res) => callback(err, res));
                 })
@@ -219,15 +219,16 @@ sendMessage = (json, callback) => {
             caption: messageText,
             parse_mode: 'MARKDOWNV2', // 'HTML'
         }).catch((error) => {
-            console.log(error.code);
-            console.log(error.response.body);
+            console.log(error);
         });
     } else if (title && link && img == "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
         //messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
         messageText = title + ' ' + lastWord + ' [Haberin devamı](https://www\.haberler\.com' + link + ')';
         bot.sendMessage(chatID, messageText, {
-            caption: messageText,
             parse_mode: 'MARKDOWNV2', // Varsayılan metin biçimlendirme modu (Markdown veya HTML)
+            disable_web_page_preview: true
+        }).catch((error) => {
+            console.log(error);
         });
     } else {
         console.log("else")
