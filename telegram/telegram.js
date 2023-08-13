@@ -120,6 +120,7 @@ async function refreshPage() {
 
     const refreshLoop = async () => {
         try {
+            await page.waitForNavigation({ waitUntil: 'load' }),  
             await page.goto(url, { waitUntil: 'networkidle0' });
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
