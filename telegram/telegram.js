@@ -46,7 +46,7 @@ module.exports.saveNews = (json, callback) => {
             return callback(null, true);
         } else {
             console.log("Bu kayıt bizde yok, insert edicez ve telegrama atıcaz");
-            News.create(json).then(result => {
+            News.create(json).then(async result => {
                 if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
                 /*
                 const boldText = 'Kalın vurgulu metin';
@@ -66,9 +66,10 @@ module.exports.saveNews = (json, callback) => {
                 let title = json.title.split(' ');
                 let lastWord = title.pop();
                 title = title.join(' ');
-                let messageText = '<b>' + time + '</b> - ' + title + '<a href="' + link + '">' + lastWord + '</a>';
+                // '<b>' + time + '</b> - ' + 
+                let messageText = title + ' <a href="' + link + '">' + lastWord + '</a>';
         
-                bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
+                await bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
                     parse_mode: 'HTML',
                 });
