@@ -135,8 +135,6 @@ async function refreshPage() {
             await bot.startPolling();
             consolo.log("polling started");
 
-
-
             await page.goto(url, { waitUntil: 'networkidle0' });
             if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
 
@@ -206,7 +204,7 @@ async function refreshPage() {
 saveList = async (arr, counter) => {
     if (counter >= arr.length) {
         await bot.stopPolling();
-        consolo.log("polling stopped");
+        console.log("polling stopped");
         return;
     } 
     this.saveNews(arr[counter], (err, res) => {
