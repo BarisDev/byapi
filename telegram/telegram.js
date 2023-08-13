@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const TelegramBot = require('node-telegram-bot-api');
 const puppeteer = require('puppeteer');
 
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_KEY, {polling: true});
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_KEY); // {polling: true}
+
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
@@ -69,11 +70,22 @@ module.exports.saveNews = (json, callback) => {
                 // '<b>' + time + '</b> - ' + 
                 let messageText = title + ' <a href="' + link + '">' + lastWord + '</a>';
         
+                if(bot.isPolling()) {
+                    consolo.log("checking: bot is polling")
+                    await bot.stopPolling();
+                    consolo.log("checking: polling stopped")
+                }
+                
+                await bot.startPolling();
+                consolo.log("polling started");
+
                 await bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
                     parse_mode: 'HTML',
                 });
         
+                await bot.stopPolling();
+                consolo.log("polling stopped");
                 /*
                 bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
