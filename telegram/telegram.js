@@ -47,7 +47,7 @@ module.exports.saveNews = (json, callback) => {
             return callback(null, true);
         } else {
             console.log("Bu kayıt bizde yok, insert edicez ve telegrama atıcaz");
-            News.create(json).then(async result => {
+            News.create(json).then(result => {
                 if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
                 /*
                 const boldText = 'Kalın vurgulu metin';
@@ -69,23 +69,12 @@ module.exports.saveNews = (json, callback) => {
                 title = title.join(' ');
                 // '<b>' + time + '</b> - ' + 
                 let messageText = title + ' <a href="' + link + '">' + lastWord + '</a>';
-        
-                if(bot.isPolling()) {
-                    consolo.log("checking: bot is polling")
-                    await bot.stopPolling();
-                    consolo.log("checking: polling stopped")
-                }
-                
-                await bot.startPolling();
-                consolo.log("polling started");
 
-                await bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
+                bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
                     parse_mode: 'HTML',
                 });
-        
-                await bot.stopPolling();
-                consolo.log("polling stopped");
+
                 /*
                 bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
                     caption: messageText,
@@ -135,6 +124,16 @@ async function refreshPage() {
 
             let temp = await browser.pages();
             console.log('Yeni Mevcut sekme sayısı:', temp.length);
+
+
+            if(bot.isPolling()) {
+                consolo.log("checking: bot is polling")
+                await bot.stopPolling();
+                consolo.log("checking: polling stopped")
+            }
+            
+            await bot.startPolling();
+            consolo.log("polling started");
 
 
 
@@ -204,8 +203,12 @@ async function refreshPage() {
     refreshLoop();
 }
 
-saveList = (arr, counter) => {
-    if (counter >= arr.length) return;
+saveList = async (arr, counter) => {
+    if (counter >= arr.length) {
+        await bot.stopPolling();
+        consolo.log("polling stopped");
+        return;
+    } 
     this.saveNews(arr[counter], (err, res) => {
         saveList(arr, counter + 1);
     });
