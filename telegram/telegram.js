@@ -104,7 +104,7 @@ async function refreshPage() {
 
     const refreshLoop = async () => {
         try {
-            const browser = await puppeteer.launch({headless: "new"});
+            const browser = await puppeteer.launch(); //{headless: "new"}
     
             const openPages = await browser.pages();
             if (openPages.length > 0) {
