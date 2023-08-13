@@ -285,7 +285,7 @@ getDescription = (link) => {
         const url = "https://www.haberler.com" + link;
         let description, category, img;
         try {
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 10000 });
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
@@ -302,7 +302,7 @@ getDescription = (link) => {
             img = null;
         }
 
-        page.close();
+        await page.close();
         resolve({
             description: description,
             category: category,
