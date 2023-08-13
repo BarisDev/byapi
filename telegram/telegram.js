@@ -61,7 +61,9 @@ module.exports.saveNews = (json, callback) => {
                 let img = json.img;
                 let link = json.link;
                 let time = json.time;
-                
+
+                json.title = json.title.replace(new RegExp('.', 'g'), '\\.'); //telegram bot error
+
                 let title = json.title.split(' ');
                 let lastWord = title.pop();
                 title = title.join(' ');
