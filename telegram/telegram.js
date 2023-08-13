@@ -65,7 +65,7 @@ module.exports.saveNews = (json, callback) => {
                 let lastWord = title.pop();
                 title = title.join(' ');
                 // '<b>' + time + '</b> - ' + 
-                let messageText = '<b>' + title + '</b> <a href="' + link + '">' + lastWord + '</a>';
+                let messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
 
                 /*
                 *bold \*text*
@@ -85,14 +85,16 @@ module.exports.saveNews = (json, callback) => {
                 pre-formatted fixed-width code block written in the Python programming language
                 ```
                 */
-                messageText = title + ' ' + lastWord + ' [Detayı](' + link + ')';
-                bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
-                    caption: messageText,
-                    parse_mode: 'MARKDOWNV2', //HTML
-                }).catch((error) => {
-                    console.log(error.code);
-                    console.log(error.response.body);
-                });
+                messageText = title + ' ' + lastWord + ' [Haberin devamı](https://www.haberler.com' + link + ')';
+                if (title && link) {
+                    bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, img, {
+                        caption: messageText,
+                        parse_mode: 'MARKDOWNV2', // 'HTML'
+                    }).catch((error) => {
+                        console.log(error.code);
+                        console.log(error.response.body);
+                    });
+                }
 
                 /*
                 bot.sendMessage(process.env.TELEGRAM_CHAT_ID, img, {
@@ -180,7 +182,6 @@ async function refreshPage() {
 
             //.split(' ').find(el => el.includes(':'));
             let arr = [];
-            
             let elements = await page.$$('.hblnBox');
             elements = elements.length > 10 ? elements.slice(0, 10) : elements;
             for (const element of elements) {
