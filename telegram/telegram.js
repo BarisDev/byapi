@@ -120,7 +120,7 @@ async function refreshPage() {
 
     const refreshLoop = async () => {
         try {
-            await page.goto(url, { waitUntil: 'domcontentloaded' });
+            await page.goto(url, { waitUntil: 'networkidle0' });
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
@@ -277,7 +277,7 @@ getDescription = (link) => {
         const url = "https://www.haberler.com" + link;
         let description, category, img;
         try {
-            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+            await page.goto(url, { waitUntil: 'networkidle0', timeout: 10000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
