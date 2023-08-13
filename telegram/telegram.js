@@ -3,18 +3,16 @@ const uri = "mongodb+srv://" + process.env.MONGO_USERNAME + ":" + process.env.MO
 const mongoose = require('mongoose');
 const TelegramBot = require('node-telegram-bot-api');
 const puppeteer = require('puppeteer');
-
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_KEY); // {polling: true}
-
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
     useNewUrlParser: true,
-    serverSelectionTimeoutMS: 5000 // İsteğe bağlı: Sunucu seçimi zaman aşımı
+    serverSelectionTimeoutMS: 5000 // Optional: timeout
 });
 
 let connectionStatus = false;
-// Bağlantı başarılı veya hatalı olduğunda bildirim
+
 const db = mongoose.connection;
 const newsSchema = new mongoose.Schema({
     img: String,
@@ -23,32 +21,28 @@ const newsSchema = new mongoose.Schema({
     title: String
 });
 const News = mongoose.model('news_collection', newsSchema);
-db.on('error', console.error.bind(console, 'Bağlantı Hatası:'));
+db.on('error', console.error.bind(console, 'Connection error:'));
 db.once('open', () => {
-    console.log('Veritabanına bağlanıldı');
+    console.log('Connected to mongo');
     connectionStatus = true;
     // Burada Mongoose kullanmaya başlayabilirsiniz
 });
 
 module.exports.saveNews = (json, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
-    // Veri eklemek için create metodu kullanılır
-    //json = JSON.parse(json);
 
-    
     this.getNews( { "title": json.title}, (err, res) => {
         if (err) {
             console.error("getNews", err);
             return callback({code: 500, message: 'Internal Server Error'}, null);
         }
-        //console.log("kayıt geldi", res);
         if (res.length > 0) {
-            console.log("Bu kayıt bizde var", res[0].title);
+            console.log("found", res[0].title);
             return callback(null, true);
         } else {
-            console.log("Bu kayıt bizde yok", json.title);
+            console.log("inserting...", json.title);
             News.create(json).then(result => {
-                if (!process.env.PRODUCTION) console.log('Veri başarıyla eklendi:', result);
+                if (!process.env.PRODUCTION) console.log('Data inserted successfully:', result);
                 /*
                 const boldText = 'Kalın vurgulu metin';
                 const italicText = 'İtalik vurgulu metin';
@@ -85,7 +79,7 @@ module.exports.saveNews = (json, callback) => {
                 callback(null, true);
             })
             .catch(err => {
-                console.error('Veri eklenirken hata oluştu:', err);
+                console.error('Error while inserting data:', err);
                 callback(err, null);
             });
         }
@@ -95,18 +89,18 @@ module.exports.saveNews = (json, callback) => {
 module.exports.getNews = (query, callback) => {
     if (!connectionStatus) return callback('Mongo connection lost!', []);
     News.find(query).then(result => {
-        if (!process.env.PRODUCTION) console.log('Veri başarıyla getirildi:', result);
+        if (!process.env.PRODUCTION) console.log('getNews data:', result);
         callback(null, result);
     })
     .catch(err => {
-        console.error('Veri getirilirken hata oluştu:', err);
+        console.error('getNews error:', err);
         callback(err, null);
     });
 };
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 60 * 1000;
+    const refreshInterval = 90 * 1000;
 
     const refreshLoop = async () => {
         try {
@@ -114,16 +108,16 @@ async function refreshPage() {
     
             const openPages = await browser.pages();
             if (openPages.length > 0) {
-                console.log('Mevcut sekme sayısı:', openPages.length);
+                console.log('Current tab amount:', openPages.length);
                 await Promise.all(openPages.map(page => page.close()));
                 const closedPages = await browser.pages();
-                console.log('Temizlendikten sonraki sekme sayısı:', closedPages.length);
+                console.log('Tab amount after cleaning:', closedPages.length);
             }
 
             const page = await browser.newPage();
 
             let temp = await browser.pages();
-            console.log('Yeni Mevcut sekme sayısı:', temp.length);
+            console.log('New tab amount:', temp.length);
 
 
             if(bot.isPolling()) {
@@ -136,7 +130,7 @@ async function refreshPage() {
             console.log("polling started");
 
             await page.goto(url, { waitUntil: 'networkidle0' });
-            if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
+            if (!process.env.PRODUCTION) console.log('Page refreshed:', new Date());
 
 
             let dk = await page.$('.sondakikatxt');
@@ -146,9 +140,9 @@ async function refreshPage() {
         
             if (match && match.length >= 2) {
                 dk = match[1];
-                if (!process.env.PRODUCTION) console.log('Saat:', dk);
+                if (!process.env.PRODUCTION) console.log('Time:', dk);
             } else {
-                if (!process.env.PRODUCTION) console.log('Saat bulunamadı.');
+                if (!process.env.PRODUCTION) console.log('Time not found.');
             }
 
             //.split(' ').find(el => el.includes(':'));
@@ -171,8 +165,8 @@ async function refreshPage() {
 
                 if (!process.env.PRODUCTION) {
                     console.log('img src:', img);
-                    console.log('hblnContent:', title);
-                    console.log('hblnTime:', time);
+                    console.log('title:', title);
+                    console.log('time:', time);
                     console.log('link:', link);
                 }
 
@@ -185,14 +179,14 @@ async function refreshPage() {
                 //if (time == dk) {}
             }
             if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
-            console.log(dk, "-", arr.length, "adet içeri girecek");
+            console.log(dk, "-", arr.length, " data will be inserted");
             
             page.close();
             browser.close();
             
             saveList(arr, 0);
         } catch (error) {
-            console.error('Hata:', error);
+            console.error('Error:', error);
         } finally {
             setTimeout(refreshLoop, refreshInterval);
         }
