@@ -104,7 +104,7 @@ async function refreshPage() {
 
     const refreshLoop = async () => {
         try {
-            const browser = await puppeteer.launch();
+            const browser = await puppeteer.launch({headless: "new"});
     
             const openPages = await browser.pages();
             if (openPages.length > 0) {
@@ -129,6 +129,14 @@ async function refreshPage() {
             await bot.startPolling();
             console.log("polling started");
 
+            if (page.isDetached()) {
+                console.log('PAGE DETACHED!');
+                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            } else {
+                console.log('page is alive');
+                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            }
+            
             await page.goto(url, { waitUntil: 'networkidle0' });
             if (!process.env.PRODUCTION) console.log('Page refreshed:', new Date());
 
@@ -179,7 +187,7 @@ async function refreshPage() {
                 //if (time == dk) {}
             }
             if (!process.env.PRODUCTION) console.log("finalArray ->", arr);
-            console.log(dk, "-", arr.length, " data will be inserted");
+            console.log(dk, "-", arr.length, " data will be analysed");
             
             page.close();
             browser.close();
