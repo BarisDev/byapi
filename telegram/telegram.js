@@ -80,7 +80,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 90 * 1000;
+    const refreshInterval = 180 * 1000;
     const browser = await puppeteer.launch(); //{headless: "new"}
     const openPages = await browser.pages();
     if (openPages.length > 0) {
