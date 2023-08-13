@@ -36,6 +36,7 @@ db.once('open', () => {
     console.log('Connected to mongo');
     connectionStatus = true;
     // Burada Mongoose kullanmaya başlayabilirsiniz
+    refreshPage();
 });
 
 module.exports.saveNews = (json, callback) => {
@@ -99,7 +100,7 @@ async function refreshPage() {
     const page = await browser.newPage();
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
-/*
+    /*
     if(bot.isPolling()) {
         console.log("checking: bot is polling")
         await bot.stopPolling();
@@ -107,7 +108,7 @@ async function refreshPage() {
     }
     await bot.startPolling();
     console.log("polling started");
-*/    
+    */
 
     if (page.frames().length == 0) {
         console.log('FRAMES DETACHED FROM PAGE!');
@@ -119,7 +120,7 @@ async function refreshPage() {
 
     const refreshLoop = async () => {
         try {
-            await page.goto(url, { waitUntil: 'networkidle0' });
+            await page.goto(url, { waitUntil: 'domcontentloaded' });
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
@@ -184,7 +185,7 @@ async function refreshPage() {
                 await refreshLoop();
             }, refreshInterval)
             
-            //await page.waitFor(5000);
+            //await page.waitForTimeout(refreshInterval);
             //refreshLoop();
         }
     };
@@ -202,9 +203,18 @@ sendMessage = async (json, callback) => {
     title = title.join(' ');
 
     let details = await getDescription(link);
+    let updateObj = {
+        description: details.description, 
+        category: details.category,
+    }
+
+    if (img.includes('Default')) {
+        img = details.img.replace('_amp', '_o');
+        updateObj['img'] = img;
+    }
     News.updateOne(
         { title: json.title },
-        { $set: { description: details.description, category: details.category } },
+        { $set: updateObj },
         { new: true },
         (err, updatedItem) => {
             if (err) {
@@ -222,7 +232,7 @@ sendMessage = async (json, callback) => {
         }
     }
 
-    if (title && link && img != "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
+    if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
         // messageText = title + ' ' + lastWord;
         // if (details.description) messageText += '\n' + details.description;
         // messageText += '\n[Haberin devamı](https://www\.haberler\.com' + link + ')';
@@ -238,7 +248,7 @@ sendMessage = async (json, callback) => {
             console.log(error.code);
             console.log(error.response.body.description);
         });
-    } else if (title && link && img == "https://s.hbrcdn.com/mstatic/images/Default_157.jpg") {
+    } else if (title && link && img.includes('Default')) {
         //messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
         // messageText = title + ' ' + lastWord;
         // if (details.description) messageText += '\n' + details.description;
@@ -265,25 +275,30 @@ getDescription = (link) => {
         //console.log('\nDetay sayfası süreci başlıyor');
         const page = await browser.newPage();
         const url = "https://www.haberler.com" + link;
-        let description, category;
+        let description, category, img;
         try {
-            await page.goto(url, { waitUntil: 'networkidle0', timeout: 10000 });
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
             let categoryElement = await page.$('.hbptHead_h2');
             category = categoryElement ? await categoryElement.evaluate(element => element.textContent) : null;
+            
+            let imgElement = await page.$('.hbptMainImage');
+            img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
 
         } catch (error) {
             console.log(error, link);
             category = null;
             description = null;
+            img = null;
         }
 
         page.close();
         resolve({
             description: description,
-            category: category
+            category: category,
+            img: img
         });
     })
 }
@@ -298,5 +313,3 @@ saveList = (arr, counter) => {
         saveList(arr, counter + 1);
     });
 }
-
-refreshPage();
