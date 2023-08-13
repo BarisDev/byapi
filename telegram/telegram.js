@@ -216,7 +216,7 @@ sendMessage = async (json, callback) => {
         category: details.category,
     }
 
-    if (img.includes('Default')) {
+    if (img.includes('Default') && details.img) {
         img = details.img.replace('_amp', '_o');
         updateObj['img'] = img;
     }
