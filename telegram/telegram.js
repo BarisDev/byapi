@@ -127,13 +127,13 @@ async function refreshPage() {
 
 
             if(bot.isPolling()) {
-                consolo.log("checking: bot is polling")
+                console.log("checking: bot is polling")
                 await bot.stopPolling();
-                consolo.log("checking: polling stopped")
+                console.log("checking: polling stopped")
             }
             
             await bot.startPolling();
-            consolo.log("polling started");
+            console.log("polling started");
 
             await page.goto(url, { waitUntil: 'networkidle0' });
             if (!process.env.PRODUCTION) console.log('Sayfa yenilendi:', new Date());
