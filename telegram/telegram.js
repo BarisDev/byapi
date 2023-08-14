@@ -288,8 +288,9 @@ getDescription = (link) => {
         //console.log('\nDetay sayfası süreci başlıyor');
         const url = "https://www.haberler.com" + link;
         let description, category, img;
+        let page;
         try {
-            const page = await browser.newPage();
+            page = await browser.newPage();
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
