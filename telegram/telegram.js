@@ -110,9 +110,10 @@ async function refreshPage() {
                 | 'networkidle2';
              */
             
-            if (page.frames().length == 0) {
-                console.log('FRAMES DETACHED FROM PAGE!');
+            if (page.frames().length == 1) {
+                console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+                throw new Error("detached_frames");
             } else {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
