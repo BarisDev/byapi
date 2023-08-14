@@ -56,6 +56,7 @@ module.exports.saveNews = (json, callback) => {
             if (process.env.PRODUCTION == 'TRUE') {
                 console.log("inserting...", json.title);
                 News.create(json).then(result => {
+                    console.log("inserted")
                     sendMessage(json, (err, res) => callback(err, res));
                 })
                 .catch(err => {
@@ -209,7 +210,9 @@ sendMessage = async (json, callback) => {
     let lastWord = title.pop();
     title = title.join(' ');
 
+    console.log("details gelecek");
     let details = await getDescription(link);
+    console.log("details geldi");
     let updateObj = {
         description: details.description, 
         category: details.category,
@@ -219,6 +222,7 @@ sendMessage = async (json, callback) => {
         img = details.img.replace('_amp', '_o');
         updateObj['img'] = img;
     }
+
 
     const res = await News.updateOne({ title: json.title }, { $set: updateObj });
     console.log(res.acknowledged, "bilgisi geldi |", res.matchedCount, "adet buldum |", res.modifiedCount, "adet update ettim");
@@ -291,7 +295,9 @@ getDescription = (link) => {
         let page;
         try {
             page = await browser.newPage();
+            console.log("detay linki açılacak");
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
