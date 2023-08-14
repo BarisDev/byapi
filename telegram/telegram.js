@@ -179,19 +179,18 @@ async function refreshPage() {
             // browser.close();
             
             saveList(arr, 0);
+
+            await page.close();
+            await browser.close()
+            
         } catch (error) {
             console.error('Error:', error);
             await page.close();
             page = await browser.newPage();
 
         } finally {
-            
-            await page.close();
-            await browser.close()
-            
             await delay(refreshInterval);
             await refreshLoop();
-
         }
     };
   
