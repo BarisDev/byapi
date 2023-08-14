@@ -114,7 +114,7 @@ async function refreshPage() {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
-            
+
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
@@ -211,6 +211,11 @@ sendMessage = async (json, callback) => {
         img = details.img.replace('_amp', '_o');
         updateObj['img'] = img;
     }
+
+    const res = await News.updateOne({ title: json.title }, { $set: updateObj });
+    console.log(res.acknowledged, "bilgisi geldi |", res.matchedCount, "adet buldum |", res.modifiedCount, "adet update ettim");
+
+    /*
     News.updateOne(
         { title: json.title },
         { $set: updateObj },
@@ -223,6 +228,7 @@ sendMessage = async (json, callback) => {
             }
         }
     );
+    */
 
     
     if (details.description) {
