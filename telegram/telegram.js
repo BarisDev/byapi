@@ -114,14 +114,15 @@ async function refreshPage() {
             if (firstPageOpened && page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-                throw new Error("detached_frames");
+                //throw new Error("detached_frames");
+                
             } else {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             firstPageOpened = true;
-            
+
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
