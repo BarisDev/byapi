@@ -183,7 +183,7 @@ async function refreshPage() {
         } finally {
             
             await delay(refreshInterval);
-            await refreshLoop();
+            refreshLoop();
             
             //await page.waitForTimeout(refreshInterval);
             //refreshLoop();
