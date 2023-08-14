@@ -182,15 +182,13 @@ async function refreshPage() {
             if (process.env.PRODUCTION == 'FALSE') console.log("finalArray ->", arr);
             console.log(dk, "-", arr.length, " data will be analysed");
 
-            // browser.close();
-            
-            saveList(arr, 0);
-            await page.close();
         } catch (error) {
             console.error('Error:', error);
-            await page.close();
         } finally {
+            await page.close();
             
+            saveList(arr, 0);
+
             await delay(refreshInterval);
             refreshLoop();
             
@@ -301,20 +299,20 @@ getDescription = (link) => {
             
             let imgElement = await page.$('.hbptMainImage');
             img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
-
-            await page.close();
         } catch (error) {
             console.log(error, link);
             category = null;
             description = null;
             img = null;
+        } finally {
+            await page.close();
+            resolve({
+                description: description,
+                category: category,
+                img: img
+            });
         }
 
-        resolve({
-            description: description,
-            category: category,
-            img: img
-        });
     })
 }
 
