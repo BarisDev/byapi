@@ -281,10 +281,10 @@ sendMessage = async (json, callback) => {
 getDescription = (link) => {
     return new Promise(async function(resolve, reject) {
         //console.log('\nDetay sayfası süreci başlıyor');
-        const page = await browser.newPage();
         const url = "https://www.haberler.com" + link;
         let description, category, img;
         try {
+            const page = await browser.newPage();
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
@@ -295,6 +295,7 @@ getDescription = (link) => {
             let imgElement = await page.$('.hbptMainImage');
             img = imgElement ? await imgElement.evaluate(img => img.getAttribute('src')) : null;
 
+            await page.close();
         } catch (error) {
             console.log(error, link);
             category = null;
@@ -302,7 +303,6 @@ getDescription = (link) => {
             img = null;
         }
 
-        await page.close();
         resolve({
             description: description,
             category: category,
