@@ -115,7 +115,8 @@ async function refreshPage() {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
                 //throw new Error("detached_frames");
-                
+                delay(5000);
+
             } else {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
