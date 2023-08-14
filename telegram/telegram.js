@@ -84,24 +84,27 @@ module.exports.getNews = (query, callback) => {
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 180 * 1000;
-    browser = await puppeteer.launch({
-        ignoreHTTPSErrors: true,
-        args: ["--ignore-certificate-errors"]
-    }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
-    const openPages = await browser.pages();
-    if (openPages.length > 0) {
-        console.log('Current tab amount:', openPages.length);
-        await Promise.all(openPages.map(page => page.close()));
-        const closedPages = await browser.pages();
-        console.log('Tab amount after cleaning:', closedPages.length);
-    }
-
-    let page = await browser.newPage();
-    let currentPages = await browser.pages();
-    console.log('New tab amount:', currentPages.length);
-
     const refreshLoop = async () => {
         try {
+            //open browser
+            browser = await puppeteer.launch({
+                ignoreHTTPSErrors: true,
+                args: ["--ignore-certificate-errors"]
+            }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
+            const openPages = await browser.pages();
+            if (openPages.length > 0) {
+                console.log('Current tab amount:', openPages.length);
+                await Promise.all(openPages.map(page => page.close()));
+                const closedPages = await browser.pages();
+                console.log('Tab amount after cleaning:', closedPages.length);
+            }
+        
+            let page = await browser.newPage();
+            let currentPages = await browser.pages();
+            console.log('New tab amount:', currentPages.length);
+
+
+
             /**
              *  export type PuppeteerLifeCycleEvent =
                 | 'load'
@@ -183,11 +186,12 @@ async function refreshPage() {
 
         } finally {
             
+            await page.close();
+            await browser.close()
+            
             await delay(refreshInterval);
             await refreshLoop();
-            
-            //await page.waitForTimeout(refreshInterval);
-            //refreshLoop();
+
         }
     };
   
