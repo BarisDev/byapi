@@ -7,7 +7,7 @@ const puppeteer = require('puppeteer');
 const botID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_BOT_KEY : process.env.TELEGRAM_BOT_KEY_TEST;
 const chatID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_CHAT_ID : process.env.TELEGRAM_CHAT_ID_TEST;
 const bot = new TelegramBot(botID); // {polling: true}
-let browser;
+let browser, page;
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
@@ -96,12 +96,12 @@ async function refreshPage() {
         console.log('Tab amount after cleaning:', closedPages.length);
     }
 
-    let page = await browser.newPage();
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
 
     const refreshLoop = async () => {
         try {
+            page = await browser.newPage();
             /**
              *  export type PuppeteerLifeCycleEvent =
                 | 'load'
@@ -172,15 +172,13 @@ async function refreshPage() {
             if (process.env.PRODUCTION == 'FALSE') console.log("finalArray ->", arr);
             console.log(dk, "-", arr.length, " data will be analysed");
 
-            // page.close();
             // browser.close();
             
             saveList(arr, 0);
+            await page.close();
         } catch (error) {
             console.error('Error:', error);
             await page.close();
-            page = await browser.newPage();
-
         } finally {
             
             await delay(refreshInterval);
