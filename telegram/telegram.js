@@ -88,7 +88,7 @@ module.exports.getNews = (query, callback) => {
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
     const refreshInterval = 180 * 1000;
-    browser = await puppeteer.launch(); //{headless: "new"}
+    browser = await puppeteer.launch({args: ['--disable-features=site-per-process']}); //{headless: "new"}
     const openPages = await browser.pages();
     if (openPages.length > 0) {
         console.log('Current tab amount:', openPages.length);
