@@ -96,7 +96,7 @@ async function refreshPage() {
         console.log('Tab amount after cleaning:', closedPages.length);
     }
 
-    const page = await browser.newPage();
+    let page = await browser.newPage();
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
 
@@ -109,7 +109,7 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
-
+            
             if (page.frames().length == 0) {
                 console.log('FRAMES DETACHED FROM PAGE!');
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
@@ -117,7 +117,7 @@ async function refreshPage() {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
-
+            await delay(1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
@@ -183,9 +183,8 @@ async function refreshPage() {
 
         } finally {
             
-            setTimeout(async () => {
-                await refreshLoop();
-            }, refreshInterval)
+            await delay(refreshInterval);
+            await refreshLoop();
             
             //await page.waitForTimeout(refreshInterval);
             //refreshLoop();
@@ -317,3 +316,10 @@ saveList = (arr, counter) => {
         saveList(arr, counter + 1);
     });
 }
+
+async function delay(milliseconds) {
+    return new Promise(resolve => {
+        setTimeout(resolve, milliseconds);
+    });
+}
+  
