@@ -99,6 +99,7 @@ async function refreshPage() {
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
 
+    let firstPageOpened = false;
     const refreshLoop = async () => {
         try {
             page = await browser.newPage();
@@ -110,7 +111,7 @@ async function refreshPage() {
                 | 'networkidle2';
              */
             
-            if (page.frames().length == 1) {
+            if (firstPageOpened && page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
                 throw new Error("detached_frames");
@@ -118,8 +119,8 @@ async function refreshPage() {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
-            await delay(1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
+            firstPageOpened = true;
             
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
