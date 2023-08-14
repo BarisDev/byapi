@@ -124,6 +124,12 @@ async function refreshPage() {
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             firstPageOpened = true;
 
+            console.log("iframe silinecek");
+            await page.evaluate(() => {
+                (document.querySelectorAll('iframe') || document.querySelectorAll('frame')).forEach(el => el.remove());
+            });
+            console.log("iframe silindi");
+
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
