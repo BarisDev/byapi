@@ -100,6 +100,7 @@ async function refreshPage() {
     console.log('New tab amount:', currentPages.length);
 
     let firstPageOpened = false;
+    let arr = [];
     const refreshLoop = async () => {
         try {
             page = await browser.newPage();
@@ -145,7 +146,6 @@ async function refreshPage() {
             }
 
             //.split(' ').find(el => el.includes(':'));
-            let arr = [];
             let elements = await page.$$('.hblnBox');
             elements = elements.length > 10 ? elements.slice(0, 10) : elements;
             for (const element of elements) {
