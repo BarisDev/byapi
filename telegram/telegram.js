@@ -8,11 +8,7 @@ const botID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_BOT_KEY : 
 const chatID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_CHAT_ID : process.env.TELEGRAM_CHAT_ID_TEST;
 const bot = new TelegramBot(botID); // {polling: true}
 let browser;
-/*
-bot.on('polling_error', (error) => {
-    console.log(error.code, error);
-});
-*/
+
 mongoose.connect(uri, {
     useUnifiedTopology: true,
     useNewUrlParser: true,
@@ -100,23 +96,6 @@ async function refreshPage() {
     const page = await browser.newPage();
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
-    /*
-    if(bot.isPolling()) {
-        console.log("checking: bot is polling")
-        await bot.stopPolling();
-        console.log("checking: polling stopped")
-    }
-    await bot.startPolling();
-    console.log("polling started");
-    */
-
-    if (page.frames().length == 0) {
-        console.log('FRAMES DETACHED FROM PAGE!');
-        // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-    } else {
-        console.log('frames in page are alive, count:', page.frames().length);
-        // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-    }
 
     const refreshLoop = async () => {
         try {
@@ -127,6 +106,15 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
+
+            if (page.frames().length == 0) {
+                console.log('FRAMES DETACHED FROM PAGE!');
+                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            } else {
+                console.log('frames in page are alive, count:', page.frames().length);
+                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            }
+            
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
@@ -187,6 +175,9 @@ async function refreshPage() {
             saveList(arr, 0);
         } catch (error) {
             console.error('Error:', error);
+            await page.close();
+            page = await browser.newPage();
+
         } finally {
             
             setTimeout(async () => {
@@ -312,11 +303,7 @@ getDescription = (link) => {
 }
 
 saveList = (arr, counter) => {
-    if (counter >= arr.length) {
-        //let a = await bot.stopPolling();
-        //console.log("polling stopped", a);
-        return;
-    } 
+    if (counter >= arr.length) return;
     this.saveNews(arr[counter], (err, res) => {
         saveList(arr, counter + 1);
     });
