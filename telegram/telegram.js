@@ -113,7 +113,20 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
+            
 
+
+            
+            if (firstPageOpened && page.frames().length == 1) {
+                console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
+                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+                //throw new Error("detached_frames");
+                await delay(5000);
+
+            } else {
+                console.log('frames in page are alive, count:', page.frames().length);
+                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            }
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             firstPageOpened = true;
 
@@ -266,8 +279,22 @@ getDescription = (link) => {
         let description, category, img;
         let page;
         try {
+            console.log("detay yeni sekme açılacak");
             page = await browser.newPage();
+
+            if (page.frames().length == 1) {
+                console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
+                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+                //throw new Error("detached_frames");
+                await delay(10 * 1000);
+
+            } else {
+                console.log('frames in detail page are alive, count:', page.frames().length);
+                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            }
+
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
+            console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
