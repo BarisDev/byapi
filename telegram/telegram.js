@@ -308,7 +308,7 @@ getDescription = (link) => {
                 throw new Error(`browser.newPage() zaman aşımına uğradı.`);
             }
 
-            if (firstPageOpened && page.frames().length == 1) {
+            if (page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
                 //throw new Error("detached_frames");
