@@ -113,30 +113,10 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
-            
 
-
-            
-            if (firstPageOpened && page.frames().length == 1) {
-                console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
-                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-                //throw new Error("detached_frames");
-                delay(5000);
-
-            } else {
-                console.log('frames in page are alive, count:', page.frames().length);
-                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-            }
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             firstPageOpened = true;
 
-            console.log("iframe silinecek");
-            await page.evaluate(() => {
-                (document.querySelectorAll('iframe') || document.querySelectorAll('frame')).forEach(el => el.remove());
-            });
-            console.log("iframe silindi");
-
-            
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
@@ -194,7 +174,7 @@ async function refreshPage() {
             
             console.log("-----------savelist çağırılacak")
             saveList(arr, 0, async (err, res) => {
-                console.log("-----------savelist bitti")
+                console.log("-----------savelist bitti,", refreshInterval / 1000, "dk beklenecek...")
                 await delay(refreshInterval);
                 refreshLoop();
             });
@@ -213,9 +193,7 @@ sendMessage = async (json, callback) => {
     let lastWord = title.pop();
     title = title.join(' ');
 
-    console.log("details gelecek");
     let details = await getDescription(link);
-    console.log("details geldi");
     let updateObj = {
         description: details.description, 
         category: details.category,
@@ -253,10 +231,6 @@ sendMessage = async (json, callback) => {
     }
 
     if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
-        // messageText = title + ' ' + lastWord;
-        // if (details.description) messageText += '\n' + details.description;
-        // messageText += '\n[Haberin devamı](https://www\.haberler\.com' + link + ')';
-
         messageText = title + ' ' + lastWord;
         if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
         messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
@@ -269,11 +243,6 @@ sendMessage = async (json, callback) => {
             console.log(error.response.body.description);
         });
     } else if (title && link && img.includes('Default')) {
-        //messageText = '<b>' + title + '</b> <a href="https://www.haberler.com' + link + '">' + lastWord + '</a>';
-        // messageText = title + ' ' + lastWord;
-        // if (details.description) messageText += '\n' + details.description;
-        // messageText += '\n[Haberin devamı](https://www\.haberler\.com' + link + ')';
-
         messageText = title + ' ' + lastWord;
         if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
         messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
@@ -297,25 +266,8 @@ getDescription = (link) => {
         let description, category, img;
         let page;
         try {
-            console.log("detay yeni sekme açılacak");
             page = await browser.newPage();
-
-            if (page.frames().length == 1) {
-                console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
-                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-                //throw new Error("detached_frames");
-                //delay(20 * 1000);
-
-            } else {
-                console.log('frames in detail page are alive, count:', page.frames().length);
-                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-            }
-
-            let status = await page.isClosed(); //always returns false
-            console.log("detay linki açılacak, sayfa kapandı mı?", status);
-
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
-            console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
