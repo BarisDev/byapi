@@ -101,6 +101,7 @@ async function refreshPage() {
     console.log('New tab amount:', currentPages.length);
 
     let firstPageOpened = false;
+
     let arr = [];
     const refreshLoop = async () => {
         try {
@@ -112,6 +113,9 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
+            
+
+
             
             if (firstPageOpened && page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
@@ -132,6 +136,7 @@ async function refreshPage() {
             });
             console.log("iframe silindi");
 
+            
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
@@ -146,7 +151,6 @@ async function refreshPage() {
                 if (process.env.PRODUCTION == 'FALSE') console.log('Time not found.');
             }
 
-            //.split(' ').find(el => el.includes(':'));
             let elements = await page.$$('.hblnBox');
             elements = elements.length > 10 ? elements.slice(0, 10) : elements;
             for (const element of elements) {
@@ -178,7 +182,6 @@ async function refreshPage() {
                     description: "",
                     category: "",
                 });
-                //if (time == dk) {}
             }
             if (process.env.PRODUCTION == 'FALSE') console.log("finalArray ->", arr);
             console.log(dk, "-", arr.length, " data will be analysed");
@@ -189,13 +192,12 @@ async function refreshPage() {
             let status = await page.isClosed();
             if (!status) await page.close();
             
-            saveList(arr, 0);
-
-            await delay(refreshInterval);
-            refreshLoop();
-            
-            //await page.waitForTimeout(refreshInterval);
-            //refreshLoop();
+            console.log("-----------savelist çağırılacak")
+            saveList(arr, 0, async (err, res) => {
+                console.log("-----------savelist bitti")
+                await delay(refreshInterval);
+                refreshLoop();
+            });
         }
     };
   
@@ -294,34 +296,24 @@ getDescription = (link) => {
         const url = "https://www.haberler.com" + link;
         let description, category, img;
         let page;
-        let pagePromise;
         try {
             console.log("detay yeni sekme açılacak");
-            pagePromise = browser.newPage();
-            page = await Promise.race([pagePromise, new Promise((_, reject) => {
-            setTimeout(() => {
-                reject(new Error(`browser.newPage() zaman aşımına uğradı.`));
-            }, 10000);
-            })]);
-            
-            if (!page) {
-                console.log("detay yeni sekme açılamadı!");
-                throw new Error(`browser.newPage() zaman aşımına uğradı.`);
-            }
+            page = await browser.newPage();
 
             if (page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
                 //throw new Error("detached_frames");
-                delay(20 * 1000);
+                //delay(20 * 1000);
 
             } else {
                 console.log('frames in detail page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
-            //page = await browser.newPage();
-            let status = await page.isClosed();
+
+            let status = await page.isClosed(); //always returns false
             console.log("detay linki açılacak, sayfa kapandı mı?", status);
+
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
             console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
@@ -351,10 +343,12 @@ getDescription = (link) => {
     })
 }
 
-saveList = (arr, counter) => {
-    if (counter >= arr.length) return;
+saveList = (arr, counter, callback) => {
+    if (counter >= arr.length) {
+        return callback(null, true);
+    }
     this.saveNews(arr[counter], (err, res) => {
-        saveList(arr, counter + 1);
+        saveList(arr, counter + 1, callback);
     });
 }
 
