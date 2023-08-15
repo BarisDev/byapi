@@ -308,6 +308,16 @@ getDescription = (link) => {
                 throw new Error(`browser.newPage() zaman aşımına uğradı.`);
             }
 
+            if (firstPageOpened && page.frames().length == 1) {
+                console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
+                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+                //throw new Error("detached_frames");
+                delay(5000);
+
+            } else {
+                console.log('frames in detail page are alive, count:', page.frames().length);
+                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
+            }
             //page = await browser.newPage();
             console.log("detay linki açılacak");
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
