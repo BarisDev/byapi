@@ -84,7 +84,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 5 * 60 * 1000;
+    const refreshInterval = 2 * 60 * 1000;
     browser = await puppeteer.launch({
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
@@ -113,10 +113,7 @@ async function refreshPage() {
                 | 'networkidle0'
                 | 'networkidle2';
              */
-            
 
-
-            
             if (firstPageOpened && page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
@@ -127,9 +124,10 @@ async function refreshPage() {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
+
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
             firstPageOpened = true;
-
+            
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
@@ -187,7 +185,6 @@ async function refreshPage() {
             
             console.log("-----------savelist çağırılacak")
             saveList(arr, 0, async (err, res) => {
-                console.log("-----------savelist bitti,", refreshInterval / 1000, "dk beklenecek...")
                 await delay(refreshInterval);
                 refreshLoop();
             });
