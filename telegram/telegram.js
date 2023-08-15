@@ -84,7 +84,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 2 * 60 * 1000;
+    const refreshInterval = 5 * 60 * 1000;
     browser = await puppeteer.launch({
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
