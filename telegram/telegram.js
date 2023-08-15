@@ -320,7 +320,8 @@ getDescription = (link) => {
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
             //page = await browser.newPage();
-            console.log("detay linki açılacak");
+            let status = await page.isClosed();
+            console.log("detay linki açılacak, sayfa kapandı mı?", status);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
             console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
