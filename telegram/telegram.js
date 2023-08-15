@@ -89,6 +89,8 @@ async function refreshPage() {
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
     }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
+    
+    /*
     const openPages = await browser.pages();
     if (openPages.length > 0) {
         console.log('Current tab amount:', openPages.length);
@@ -96,16 +98,19 @@ async function refreshPage() {
         const closedPages = await browser.pages();
         console.log('Tab amount after cleaning:', closedPages.length);
     }
-
+    
     let currentPages = await browser.pages();
     console.log('New tab amount:', currentPages.length);
+    */
 
     let firstPageOpened = false;
 
     let arr = [];
     const refreshLoop = async () => {
         try {
+            console.log("refresh page started");
             page = await browser.newPage();
+            console.log("refresh page is ready");
             /**
              *  export type PuppeteerLifeCycleEvent =
                 | 'load'
@@ -114,6 +119,7 @@ async function refreshPage() {
                 | 'networkidle2';
              */
 
+                /*
             if (firstPageOpened && page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
@@ -124,8 +130,10 @@ async function refreshPage() {
                 console.log('frames in page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
+            */
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
+            console.log("refresh page networkidle2 completed");
             firstPageOpened = true;
             
             if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
@@ -220,22 +228,6 @@ sendMessage = async (json, callback) => {
 
     const res = await News.updateOne({ title: json.title }, { $set: updateObj });
     console.log(res.acknowledged, "bilgisi geldi |", res.matchedCount, "adet buldum |", res.modifiedCount, "adet update ettim");
-
-    /*
-    News.updateOne(
-        { title: json.title },
-        { $set: updateObj },
-        { new: true },
-        (err, updatedItem) => {
-            if (err) {
-                console.error('Güncelleme hatası:', err);
-            } else {
-                console.log('Güncellenen kayıt:', updatedItem);
-            }
-        }
-    );
-    */
-
     
     if (details.description) {
         if (details.description.length > 200) {
@@ -279,7 +271,6 @@ getDescription = (link) => {
         let description, category, img;
         let page;
         try {
-            console.log("detay yeni sekme açılacak");
             page = await browser.newPage();
 
             if (page.frames().length == 1) {
@@ -294,7 +285,6 @@ getDescription = (link) => {
             }
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
-            console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
         
