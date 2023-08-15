@@ -185,7 +185,10 @@ async function refreshPage() {
             
             console.log("-----------savelist çağırılacak")
             saveList(arr, 0, async (err, res) => {
+                arr = [];
+                console.log("-----------savelist bitti, timeout başlayacak", refreshInterval)
                 await delay(refreshInterval);
+                console.log("-----------savelist timeout bitti")
                 refreshLoop();
             });
         }
