@@ -84,9 +84,9 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 180 * 1000;
+    const refreshInterval = 5 * 60 * 1000;
     browser = await puppeteer.launch({
-        ignoreHTTPSErrors: true,
+        //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
     }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
     const openPages = await browser.pages();
@@ -293,8 +293,22 @@ getDescription = (link) => {
         const url = "https://www.haberler.com" + link;
         let description, category, img;
         let page;
+        let pagePromise;
         try {
-            page = await browser.newPage();
+            console.log("detay yeni sekme açılacak");
+            pagePromise = browser.newPage();
+            page = await Promise.race([pagePromise, new Promise((_, reject) => {
+            setTimeout(() => {
+                reject(new Error(`browser.newPage() zaman aşımına uğradı.`));
+            }, 10000);
+            })]);
+            
+            if (!page) {
+                console.log("detay yeni sekme açılamadı!");
+                throw new Error(`browser.newPage() zaman aşımına uğradı.`);
+            }
+
+            //page = await browser.newPage();
             console.log("detay linki açılacak");
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
             console.log("detay linki açıldı");
