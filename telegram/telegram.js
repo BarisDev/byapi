@@ -186,7 +186,7 @@ async function refreshPage() {
         } catch (error) {
             console.error('Error:', error);
         } finally {
-            await page.close();
+            if (page) await page.close();
             
             saveList(arr, 0);
 
@@ -320,7 +320,7 @@ getDescription = (link) => {
             }
             //page = await browser.newPage();
             console.log("detay linki açılacak");
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
             console.log("detay linki açıldı");
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
@@ -336,7 +336,7 @@ getDescription = (link) => {
             description = null;
             img = null;
         } finally {
-            await page.close();
+            if (page) await page.close();
             resolve({
                 description: description,
                 category: category,
