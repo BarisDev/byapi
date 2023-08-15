@@ -273,6 +273,7 @@ getDescription = (link) => {
         try {
             page = await browser.newPage();
 
+            /*
             if (page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
@@ -283,6 +284,7 @@ getDescription = (link) => {
                 console.log('frames in detail page are alive, count:', page.frames().length);
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
+            */
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
             let descriptionElement = await page.$('.haber_spotu');
