@@ -186,7 +186,8 @@ async function refreshPage() {
         } catch (error) {
             console.error('Error:', error);
         } finally {
-            if (page) await page.close();
+            let status = await page.isClosed();
+            if (!status) await page.close();
             
             saveList(arr, 0);
 
@@ -336,7 +337,9 @@ getDescription = (link) => {
             description = null;
             img = null;
         } finally {
-            if (page) await page.close();
+            let status = await page.isClosed();
+            if (!status) await page.close();
+            
             resolve({
                 description: description,
                 category: category,
