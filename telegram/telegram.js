@@ -313,7 +313,7 @@ getDescription = (link) => {
                 console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
                 // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
                 //throw new Error("detached_frames");
-                delay(5000);
+                delay(20 * 1000);
 
             } else {
                 console.log('frames in detail page are alive, count:', page.frames().length);
