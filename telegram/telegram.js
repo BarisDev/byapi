@@ -49,6 +49,7 @@ module.exports.saveNews = (json, callback) => {
             if (process.env.PRODUCTION == 'TRUE') {
                 return callback(null, true);
             } else {
+                return callback(null, true);
                 sendMessage(json, (err, res) => callback(err, res));
             }
         } else {
@@ -84,25 +85,12 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 5 * 60 * 1000;
+    const refreshInterval = 10 * 1000;
     browser = await puppeteer.launch({
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
     }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
     
-    /*
-    const openPages = await browser.pages();
-    if (openPages.length > 0) {
-        console.log('Current tab amount:', openPages.length);
-        await Promise.all(openPages.map(page => page.close()));
-        const closedPages = await browser.pages();
-        console.log('Tab amount after cleaning:', closedPages.length);
-    }
-    
-    let currentPages = await browser.pages();
-    console.log('New tab amount:', currentPages.length);
-    */
-
     let firstPageOpened = false;
 
     let arr = [];
@@ -111,6 +99,9 @@ async function refreshPage() {
             console.log("refresh page started");
             page = await browser.newPage();
             console.log("refresh page is ready");
+            page.on('onFrameDetached', (event) => {
+                console.log("frame detached event!", event);
+            });
             /**
              *  export type PuppeteerLifeCycleEvent =
                 | 'load'
@@ -131,8 +122,8 @@ async function refreshPage() {
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
             */
-
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000});
+            await delay(10 * 1000);
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000}); //60000
             console.log("refresh page networkidle2 completed");
             firstPageOpened = true;
             
@@ -196,6 +187,13 @@ async function refreshPage() {
                 arr = [];
                 console.log("-----------savelist bitti, timeout başlayacak", refreshInterval)
                 await delay(refreshInterval);
+                console.log(refreshInterval / 1000, " saniye geçti")
+                await delay(refreshInterval);
+                console.log(2 * refreshInterval / 1000, " saniye geçti")
+                await delay(refreshInterval);
+                console.log(3 * refreshInterval / 1000, " saniye geçti")
+                await delay(refreshInterval);
+                console.log(4 * refreshInterval / 1000, " saniye geçti")
                 console.log("-----------savelist timeout bitti")
                 refreshLoop();
             });
@@ -285,7 +283,7 @@ getDescription = (link) => {
                 // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
             }
             */
-
+            await delay(10 * 1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
             let descriptionElement = await page.$('.haber_spotu');
             description = descriptionElement ? await descriptionElement.evaluate(element => element.textContent) : null;
