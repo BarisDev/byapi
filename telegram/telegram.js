@@ -55,13 +55,13 @@ module.exports.saveNews = (json, callback) => {
         } else {
             
             if (process.env.PRODUCTION == 'TRUE') {
-                console.log("inserting...", json.title);
+                //console.log("inserting...", json.title);
                 News.create(json).then(result => {
-                    console.log("inserted")
+                    //console.log("inserted", json.title);
                     sendMessage(json, (err, res) => callback(err, res));
                 })
                 .catch(err => {
-                    console.error('Error while inserting data:', err);
+                    console.error('Error while inserting data:', json.title, err);
                     callback(err, null);
                 });
             } else {
@@ -99,9 +99,7 @@ async function refreshPage() {
             console.log("refresh page started");
             page = await browser.newPage();
             console.log("refresh page is ready");
-            page.on('onFrameDetached', (event) => {
-                console.log("frame detached event!", event);
-            });
+
             /**
              *  export type PuppeteerLifeCycleEvent =
                 | 'load'

@@ -27,4 +27,8 @@ router.post('/getNews', (req, res) => {
     });
 });
 
+router.get('/wakeUpRenderJS', (req, res) => {
+    res.send("ZzZzZz... Ok I'm awake!");
+});
+
 module.exports = router;
