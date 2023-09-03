@@ -7,7 +7,7 @@ const puppeteer = require('puppeteer');
 const botID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_BOT_KEY : process.env.TELEGRAM_BOT_KEY_TEST;
 const chatID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_CHAT_ID : process.env.TELEGRAM_CHAT_ID_TEST;
 const bot = new TelegramBot(botID); // {polling: true}
-let browser, page;
+let browser, page, msgProcessCounter = 0;
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
@@ -85,7 +85,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 10 * 1000;
+    const refreshInterval = 20 * 1000;
     browser = await puppeteer.launch({
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
@@ -96,36 +96,12 @@ async function refreshPage() {
     let arr = [];
     const refreshLoop = async () => {
         try {
-            console.log("refresh page started");
             page = await browser.newPage();
-            console.log("refresh page is ready");
+            msgProcessCounter++;
 
-            /**
-             *  export type PuppeteerLifeCycleEvent =
-                | 'load'
-                | 'domcontentloaded'
-                | 'networkidle0'
-                | 'networkidle2';
-             */
-
-                /*
-            if (firstPageOpened && page.frames().length == 1) {
-                console.log('FRAMES DETACHED FROM PAGE! count:', page.frames().length);
-                // Burada ayrılan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-                //throw new Error("detached_frames");
-                await delay(5000);
-
-            } else {
-                console.log('frames in page are alive, count:', page.frames().length);
-                // Hala tarayıcıda olan sayfayla ilgili işlemleri gerçekleştirebilirsiniz.
-            }
-            */
             await delay(10 * 1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000}); //60000
-            console.log("refresh page networkidle2 completed");
             firstPageOpened = true;
-            
-            if (process.env.PRODUCTION == 'FALSE') console.log('Page refreshed:', new Date());
 
             let dk = await page.$('.sondakikatxt');
             const timeText = await dk.evaluate(element => element.textContent);
@@ -179,20 +155,10 @@ async function refreshPage() {
         } finally {
             let status = await page.isClosed();
             if (!status) await page.close();
-            
-            console.log("-----------savelist çağırılacak")
+
             saveList(arr, 0, async (err, res) => {
                 arr = [];
-                console.log("-----------savelist bitti, timeout başlayacak", refreshInterval)
                 await delay(refreshInterval);
-                console.log(refreshInterval / 1000, " saniye geçti")
-                await delay(refreshInterval);
-                console.log(2 * refreshInterval / 1000, " saniye geçti")
-                await delay(refreshInterval);
-                console.log(3 * refreshInterval / 1000, " saniye geçti")
-                await delay(refreshInterval);
-                console.log(4 * refreshInterval / 1000, " saniye geçti")
-                console.log("-----------savelist timeout bitti")
                 refreshLoop();
             });
         }
@@ -221,7 +187,6 @@ sendMessage = async (json, callback) => {
         updateObj['img'] = img;
     }
 
-
     const res = await News.updateOne({ title: json.title }, { $set: updateObj });
     console.log(res.acknowledged, "bilgisi geldi |", res.matchedCount, "adet buldum |", res.modifiedCount, "adet update ettim");
     
@@ -231,32 +196,38 @@ sendMessage = async (json, callback) => {
         }
     }
 
-    if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
-        messageText = title + ' ' + lastWord;
-        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
-        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+    if (msgProcessCounter == 5) {
+        msgProcessCounter = 0;
 
-        bot.sendPhoto(chatID, img, {
-            caption: messageText,
-            parse_mode: 'HTML', // 'MARKDOWNV2'
-        }).catch(error => {
-            console.log(error.code);
-            console.log(error.response.body.description);
-        });
-    } else if (title && link && img.includes('Default')) {
-        messageText = title + ' ' + lastWord;
-        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
-        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+        if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
+            messageText = title + ' ' + lastWord;
+            if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+            messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+    
+            bot.sendPhoto(chatID, img, {
+                caption: messageText,
+                parse_mode: 'HTML', // 'MARKDOWNV2'
+            }).catch(error => {
+                console.log(error.code);
+                console.log(error.response.body.description);
+            });
+        } else if (title && link && img.includes('Default')) {
+            messageText = title + ' ' + lastWord;
+            if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+            messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
+    
+            bot.sendMessage(chatID, messageText, {
+                parse_mode: 'HTML', // 'MARKDOWNV2'
+                disable_web_page_preview: true
+            }).catch((error) => {
+                console.log(error);
+            });
+        } else {
+            console.log("else")
+        }
 
-        bot.sendMessage(chatID, messageText, {
-            parse_mode: 'HTML', // 'MARKDOWNV2'
-            disable_web_page_preview: true
-        }).catch((error) => {
-            console.log(error);
-        });
-    } else {
-        console.log("else")
     }
+
     callback(null, true);
 }
 
