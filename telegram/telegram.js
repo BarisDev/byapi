@@ -45,7 +45,6 @@ module.exports.saveNews = (json, callback) => {
         }
         if (res.length > 0) {
             console.log("found", res[0].title);
-            
             if (process.env.PRODUCTION == 'TRUE') {
                 return callback(null, true);
             } else {
@@ -53,22 +52,27 @@ module.exports.saveNews = (json, callback) => {
                 sendMessage(json, (err, res) => callback(err, res));
             }
         } else {
-            
             if (process.env.PRODUCTION == 'TRUE') {
                 //console.log("inserting...", json.title);
                 News.create(json).then(result => {
                     //console.log("inserted", json.title);
-                    if (sendCounter == 0) {
+                    if (msgProcessCounter == 0 && sendCounter == 0) {
                         sendCounter++;
                         sendMessage(json, (err, res) => callback(err, res));
-                    }
+                    } else callback(null, true);
+                    
                 })
                 .catch(err => {
                     console.error('Error while inserting data:', json.title, err);
                     callback(err, null);
                 });
             } else {
-                sendMessage(json, (err, res) => callback(err, res));
+                if (msgProcessCounter == 0 && sendCounter == 0) {
+                    sendCounter++;
+                    sendMessage(json, (err, res) => callback(err, res));
+                } else {
+                    callback(null, true);
+                }
             }
         }
     });
@@ -93,15 +97,19 @@ async function refreshPage() {
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
     }); //{headless: "new"}  // {args: ['--disable-features=site-per-process']}
-    
+
     let firstPageOpened = false;
 
     let arr = [];
     const refreshLoop = async () => {
         try {
             page = await browser.newPage();
-            msgProcessCounter++;
-            sendCounter = 0;
+
+            if (msgProcessCounter == 10) {
+                msgProcessCounter = 0;
+                sendCounter = 0;
+            } 
+            else msgProcessCounter++;
 
             await delay(10 * 1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000}); //60000
@@ -133,7 +141,6 @@ async function refreshPage() {
 
                 const linkElement = await element.$('a');
                 const link = linkElement ? await linkElement.evaluate(a => a.getAttribute('href')) : null;
-
 
                 if (process.env.PRODUCTION == 'FALSE') {
                     console.log('img src:', img);
@@ -167,7 +174,7 @@ async function refreshPage() {
             });
         }
     };
-  
+    
     refreshLoop();
 }
 
@@ -198,11 +205,6 @@ sendMessage = async (json, callback) => {
         if (details.description.length > 200) {
             details.description = details.description.substring(0, 200) + '...';
         }
-    }
-
-    if (msgProcessCounter == 3) {
-        msgProcessCounter = 0;
-        //scrap will be slow down
     }
         
     if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
@@ -243,7 +245,6 @@ getDescription = (link) => {
         let page;
         try {
             page = await browser.newPage();
-
             /*
             if (page.frames().length == 1) {
                 console.log('FRAMES DETACHED FROM DETAIL PAGE! count:', page.frames().length);
@@ -281,8 +282,7 @@ getDescription = (link) => {
                 img: img
             });
         }
-
-    })
+    });
 }
 
 saveList = (arr, counter, callback) => {
@@ -299,4 +299,3 @@ async function delay(milliseconds) {
         setTimeout(resolve, milliseconds);
     });
 }
-  
