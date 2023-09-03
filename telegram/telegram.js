@@ -85,7 +85,7 @@ module.exports.getNews = (query, callback) => {
 
 async function refreshPage() {
     const url = 'https://www.haberler.com/son-dakika/';
-    const refreshInterval = 10 * 1000;
+    const refreshInterval = 30 * 1000;
     browser = await puppeteer.launch({
         //ignoreHTTPSErrors: true,
         args: ["--ignore-certificate-errors"]
@@ -198,34 +198,34 @@ sendMessage = async (json, callback) => {
 
     if (msgProcessCounter == 3) {
         msgProcessCounter = 0;
+        //scrap will be slow down
+    }
+        
+    if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
+        messageText = title + ' ' + lastWord;
+        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
 
-        if (title && link && !img.includes('Default') && img != 'https://s.hbrcdn.com/mstatic/haberlercom_haberi.jpg') {
-            messageText = title + ' ' + lastWord;
-            if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
-            messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
-    
-            bot.sendPhoto(chatID, img, {
-                caption: messageText,
-                parse_mode: 'HTML', // 'MARKDOWNV2'
-            }).catch(error => {
-                console.log(error.code);
-                console.log(error.response.body.description);
-            });
-        } else if (title && link && img.includes('Default')) {
-            messageText = title + ' ' + lastWord;
-            if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
-            messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
-    
-            bot.sendMessage(chatID, messageText, {
-                parse_mode: 'HTML', // 'MARKDOWNV2'
-                disable_web_page_preview: true
-            }).catch((error) => {
-                console.log(error);
-            });
-        } else {
-            console.log("else")
-        }
+        bot.sendPhoto(chatID, img, {
+            caption: messageText,
+            parse_mode: 'HTML', // 'MARKDOWNV2'
+        }).catch(error => {
+            console.log(error.code);
+            console.log(error.response.body.description);
+        });
+    } else if (title && link && img.includes('Default')) {
+        messageText = title + ' ' + lastWord;
+        if (details.description && details.description != title + ' ' + lastWord) messageText += '\n\n' + details.description;
+        messageText += '\n\n<a href="https://www\.haberler\.com' + link + '">Haberin devamı</a>';
 
+        bot.sendMessage(chatID, messageText, {
+            parse_mode: 'HTML', // 'MARKDOWNV2'
+            disable_web_page_preview: true
+        }).catch((error) => {
+            console.log(error);
+        });
+    } else {
+        console.log("else")
     }
 
     callback(null, true);
