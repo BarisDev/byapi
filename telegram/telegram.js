@@ -59,8 +59,8 @@ module.exports.saveNews = (json, callback) => {
                 News.create(json).then(result => {
                     //console.log("inserted", json.title);
                     if (sendCounter == 0) {
-                        sendMessage(json, (err, res) => callback(err, res));
                         sendCounter++;
+                        sendMessage(json, (err, res) => callback(err, res));
                     }
                 })
                 .catch(err => {
@@ -102,7 +102,7 @@ async function refreshPage() {
             page = await browser.newPage();
             msgProcessCounter++;
             sendCounter = 0;
-            
+
             await delay(10 * 1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000}); //60000
             firstPageOpened = true;
