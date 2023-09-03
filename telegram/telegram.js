@@ -7,7 +7,7 @@ const puppeteer = require('puppeteer');
 const botID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_BOT_KEY : process.env.TELEGRAM_BOT_KEY_TEST;
 const chatID = process.env.PRODUCTION == 'TRUE' ? process.env.TELEGRAM_CHAT_ID : process.env.TELEGRAM_CHAT_ID_TEST;
 const bot = new TelegramBot(botID); // {polling: true}
-let browser, page, msgProcessCounter = 0;
+let browser, page, msgProcessCounter = 0, sendCounter = 0;
 
 mongoose.connect(uri, {
     useUnifiedTopology: true,
@@ -58,7 +58,10 @@ module.exports.saveNews = (json, callback) => {
                 //console.log("inserting...", json.title);
                 News.create(json).then(result => {
                     //console.log("inserted", json.title);
-                    sendMessage(json, (err, res) => callback(err, res));
+                    if (sendCounter == 0) {
+                        sendMessage(json, (err, res) => callback(err, res));
+                        sendCounter++;
+                    }
                 })
                 .catch(err => {
                     console.error('Error while inserting data:', json.title, err);
@@ -98,7 +101,8 @@ async function refreshPage() {
         try {
             page = await browser.newPage();
             msgProcessCounter++;
-
+            sendCounter = 0;
+            
             await delay(10 * 1000);
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000}); //60000
             firstPageOpened = true;
