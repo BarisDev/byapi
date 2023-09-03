@@ -105,7 +105,7 @@ async function refreshPage() {
         try {
             page = await browser.newPage();
 
-            if (msgProcessCounter == 10) {
+            if (msgProcessCounter == 5) {
                 msgProcessCounter = 0;
                 sendCounter = 0;
             } 
